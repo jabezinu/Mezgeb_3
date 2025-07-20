@@ -9,7 +9,7 @@ const clientSchema = new mongoose.Schema({
   place: { type: String, required: true },
   status: {
     type: String,
-    enum: ['started', 'active', 'onaction', 'closed'],
+    enum: ['started', 'active', 'onaction', 'closed', 'dead'],
     default: 'started'
   },
   deal: { type: Number }, // optional
