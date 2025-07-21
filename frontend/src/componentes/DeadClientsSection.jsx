@@ -31,7 +31,6 @@ const DeadClientsSection = ({ deadClients, showDeadClients, setShowDeadClients, 
             client={client}
             onEdit={onEdit}
             onDelete={onDelete}
-            variant="dead"
           />
         ))}
       </div>
