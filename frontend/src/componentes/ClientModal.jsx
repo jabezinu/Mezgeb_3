@@ -2,10 +2,36 @@ import React from 'react';
 
 const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error }) => {
   if (!open) return null;
+
+  const [isContactsApiSupported, setIsContactsApiSupported] = React.useState(false);
+
+  React.useEffect(() => {
+    if ('contacts' in navigator && 'select' in navigator.contacts) {
+      setIsContactsApiSupported(true);
+    }
+  }, []);
+
   const handleChange = e => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
+
+  const handlePickContact = async () => {
+    try {
+      const contacts = await navigator.contacts.select(['name', 'tel'], { multiple: false });
+      if (contacts.length > 0) {
+        const contact = contacts[0];
+        setForm(prev => ({
+          ...prev,
+          managerName: contact.name[0] || prev.managerName,
+          phone: contact.tel[0] || prev.phone,
+        }));
+      }
+    } catch (ex) {
+      console.error('Error selecting contact.', ex);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-lg flex items-center justify-center p-4 z-50 animate-fadeIn">
       <div className="bg-gradient-to-br from-slate-800/90 to-purple-900/90 backdrop-blur-xl rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 relative">
@@ -52,14 +78,21 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-200 mb-2">Manager Name</label>
-                <input
-                  name="managerName"
-                  value={form.managerName}
-                  onChange={handleChange}
-                  required
-                  placeholder="Enter manager name"
-                  className="w-full px-4 py-3 border border-gray-600 bg-slate-900/40 text-white rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors"
-                />
+                <div className="flex gap-2">
+                  <input
+                    name="managerName"
+                    value={form.managerName}
+                    onChange={handleChange}
+                    required
+                    placeholder="Enter manager name"
+                    className="w-full px-4 py-3 border border-gray-600 bg-slate-900/40 text-white rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors"
+                  />
+                  {isContactsApiSupported && (
+                    <button type="button" onClick={handlePickContact} className="px-4 py-3 bg-cyan-500 text-white rounded-xl">
+                      👥
+                    </button>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-200 mb-2">Phone</label>
