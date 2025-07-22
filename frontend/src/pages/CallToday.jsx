@@ -76,8 +76,8 @@ const CallToday = () => {
     try {
       const res = await api.put(`/clients/${editingId}`, editData);
       // Check if the updated nextVisit is today or before today
-      const today = new Date();
-      today.setHours(0,0,0,0);
+      const today = new Date()
+      today.setHours(0,0,0,0)
       const updatedNextVisit = new Date(res.data.nextVisit);
       updatedNextVisit.setHours(0,0,0,0);
       if (updatedNextVisit <= today) {
