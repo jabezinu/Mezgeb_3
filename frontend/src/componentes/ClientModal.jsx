@@ -1,4 +1,5 @@
 import React from 'react';
+import LocationInput from './LocationInput';
 
 const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error }) => {
   if (!open) return null;
@@ -107,13 +108,12 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-200 mb-2">Place</label>
-                <input
+                <LocationInput
                   name="place"
                   value={form.place}
                   onChange={handleChange}
                   required
-                  placeholder="Enter location"
-                  className="w-full px-4 py-3 border border-gray-600 bg-slate-900/40 text-white rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors"
+                  placeholder="Enter location or use current location"
                 />
               </div>
               <div>
