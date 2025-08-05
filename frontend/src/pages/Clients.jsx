@@ -158,7 +158,7 @@ const Clients = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Animated Background and Floating Particles (unchanged) */}
+      {/* Animated Background and Floating Particles */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-cyan-400/20 to-blue-600/20 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-purple-400/20 to-pink-600/20 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
@@ -179,24 +179,24 @@ const Clients = () => {
           />
         ))}
       </div>
-      <div className="container mx-auto px-6 py-8 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 relative z-10">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-8 sm:mb-16">
           <div className="relative inline-block">
-            <h1 className="text-7xl md:text-8xl font-black bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-6 animate-pulse">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-4 sm:mb-6 animate-pulse">
               CLIENT NEXUS
             </h1>
             <div className="absolute -inset-4 bg-gradient-to-r from-cyan-400/20 via-purple-400/20 to-pink-400/20 blur-2xl rounded-full animate-pulse"></div>
           </div>
-          <p className="text-2xl text-gray-300 mb-8 font-light">Where Business Relationships Transform Into Success</p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
+          <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-6 sm:mb-8 font-light px-4">Where Business Relationships Transform Into Success</p>
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-8 sm:mb-12 px-4">
             <button
               onClick={openAddModal}
-              className="group relative px-10 py-5 text-xl font-bold text-white bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 rounded-full hover:shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-500 overflow-hidden"
+              className="group relative px-6 sm:px-10 py-4 sm:py-5 text-lg sm:text-xl font-bold text-white bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 rounded-full hover:shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-500 overflow-hidden w-full sm:w-auto"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="relative flex items-center">
-                <svg className="w-8 h-8 mr-3 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="relative flex items-center justify-center">
+                <svg className="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-3 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
                 Launch New Client
@@ -204,16 +204,21 @@ const Clients = () => {
               <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full blur-xl"></div>
             </button>
           </div>
-          <SearchFilterBar
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            filterStatus={filterStatus}
-            setFilterStatus={setFilterStatus}
-          />
+          <div className="px-4">
+            <SearchFilterBar
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              filterStatus={filterStatus}
+              setFilterStatus={setFilterStatus}
+            />
+          </div>
+          <div className="mt-4 text-sm text-gray-400 px-4">
+            Tap cards to expand • Swipe-friendly mobile design
+          </div>
         </div>
         <StatsDashboard clients={clients} />
-        {/* Client Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        {/* Client Cards - Mobile Optimized Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {filteredClients.map(client => (
             <ClientCard
               key={client._id}

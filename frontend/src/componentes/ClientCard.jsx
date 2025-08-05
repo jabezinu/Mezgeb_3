@@ -1,159 +1,241 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Phone, MapPin, Calendar, DollarSign, FileText } from 'lucide-react';
 
 const statusConfig = {
   started: {
     label: 'STARTED',
     icon: '🚀',
-    bg: 'bg-amber-500/10',
+    bg: 'from-amber-500/20 to-orange-500/20',
+    border: 'border-amber-500/30',
     text: 'text-amber-400',
-    ring: 'ring-amber-500/20',
+    glow: 'shadow-amber-500/25',
   },
   active: {
     label: 'ACTIVE',
     icon: '⚡',
-    bg: 'bg-emerald-500/10',
+    bg: 'from-emerald-500/20 to-green-500/20',
+    border: 'border-emerald-500/30',
     text: 'text-emerald-400',
-    ring: 'ring-emerald-500/20',
+    glow: 'shadow-emerald-500/25',
   },
   onaction: {
     label: 'ON ACTION',
     icon: '🎯',
-    bg: 'bg-blue-500/10',
+    bg: 'from-blue-500/20 to-indigo-500/20',
+    border: 'border-blue-500/30',
     text: 'text-blue-400',
-    ring: 'ring-blue-500/20',
+    glow: 'shadow-blue-500/25',
   },
   closed: {
     label: 'CLOSED',
     icon: '🔒',
-    bg: 'bg-gray-500/10',
+    bg: 'from-gray-500/20 to-slate-500/20',
+    border: 'border-gray-500/30',
     text: 'text-gray-400',
-    ring: 'ring-gray-500/20',
+    glow: 'shadow-gray-500/25',
   },
   dead: {
     label: 'DEAD',
     icon: '💀',
-    bg: 'bg-red-500/10',
+    bg: 'from-red-500/20 to-pink-500/20',
+    border: 'border-red-500/30',
     text: 'text-red-400',
-    ring: 'ring-red-500/20',
+    glow: 'shadow-red-500/25',
   },
 };
 
-const InfoRow = ({ icon, label, value, iconClass }) => (
-  <div className="flex items-center text-sm">
-    <div className={`w-8 h-8 mr-4 rounded-lg flex items-center justify-center ${iconClass}`}>
-      {icon}
-    </div>
-    <div>
-      <p className="text-xs text-gray-400">{label}</p>
-      <p className="font-semibold text-white">{value}</p>
-    </div>
-  </div>
-);
-
 const ClientCard = ({ client, onEdit, onDelete }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const config = statusConfig[client.status] || statusConfig.closed;
 
-  const cardVariants = {
-    closed: {
+  const compactVariants = {
+    collapsed: {
       height: 'auto',
-      transition: { duration: 0.5, ease: [0.04, 0.62, 0.23, 0.98] }
+      transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }
     },
-    open: {
+    expanded: {
       height: 'auto',
-      transition: { duration: 0.5, ease: [0.04, 0.62, 0.23, 0.98] }
+      transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }
     }
   };
 
-  const detailsVariants = {
-    hidden: { opacity: 0, y: -20 },
-    visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.05 } }
+  const contentVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: -10,
+      transition: { duration: 0.2 }
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.3,
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -10 },
+    visible: { opacity: 1, x: 0 }
   };
 
   return (
     <motion.div
       layout
-      variants={cardVariants}
-      initial="closed"
-      animate={isOpen ? "open" : "closed"}
-      className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 shadow-lg"
+      variants={compactVariants}
+      initial="collapsed"
+      animate={isExpanded ? "expanded" : "collapsed"}
+      className={`relative bg-gradient-to-br ${config.bg} backdrop-blur-xl rounded-2xl border ${config.border} hover:${config.glow} hover:shadow-xl transition-all duration-300 overflow-hidden group`}
     >
-      {/* Clickable Header */}
-      <div 
-        className="p-4 cursor-pointer flex items-center justify-between"
-        onClick={() => setIsOpen(!isOpen)}
+      {/* Compact Header - Always Visible */}
+      <motion.div 
+        className="p-4 cursor-pointer min-h-[60px] flex items-center"
+        onClick={() => setIsExpanded(!isExpanded)}
+        whileTap={{ scale: 0.98 }}
       >
-        <div className="flex items-center">
-          <div className={`w-12 h-12 mr-4 rounded-lg flex items-center justify-center text-xl ring-2 ${config.bg} ${config.ring}`}>
-            {config.icon}
+        <div className="flex items-center justify-between w-full">
+          {/* Left: Avatar + Basic Info */}
+          <div className="flex items-center space-x-3 flex-1 min-w-0">
+            <motion.div 
+              className={`w-12 h-12 rounded-full bg-gradient-to-br ${config.bg} border-2 ${config.border} flex items-center justify-center text-lg shadow-lg`}
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              {config.icon}
+            </motion.div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-white text-sm sm:text-base truncate">
+                {client.businessName}
+              </h3>
+              <p className="text-xs text-gray-400 truncate">{client.managerName}</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-lg text-white">{client.businessName}</h3>
-            <p className="text-sm text-gray-400">{client.managerName}</p>
+
+          {/* Right: Status + Expand Button */}
+          <div className="flex items-center space-x-2 ml-2">
+            <div className={`px-2 py-1 rounded-full text-xs font-bold ${config.text} bg-white/10 hidden sm:block`}>
+              {config.label}
+            </div>
+            <motion.div
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.3 }}
+              className="text-gray-400"
+            >
+              <ChevronDown size={16} />
+            </motion.div>
           </div>
         </div>
-        <div className="flex items-center">
-          <div className={`px-3 py-1 rounded-full text-xs font-bold ${config.bg} ${config.text}`}>
+
+        {/* Mobile Status Bar */}
+        <div className="sm:hidden mt-2">
+          <div className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${config.text} bg-white/10`}>
             {config.label}
           </div>
-          <motion.div
-            animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.3 }}
-            className="ml-4"
-          >
-            <ChevronDown size={20} className="text-gray-400" />
-          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Collapsible Details */}
+      {/* Expanded Content */}
       <AnimatePresence>
-        {isOpen && (
+        {isExpanded && (
           <motion.div
             initial="hidden"
             animate="visible"
             exit="hidden"
-            variants={detailsVariants}
-            className="px-4 pb-4 border-t border-slate-700/50"
+            variants={contentVariants}
+            className="px-4 pb-4 border-t border-white/10"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-              <InfoRow icon="📞" label="Phone" value={client.phone} iconClass="bg-blue-500/10" />
-              <InfoRow icon="📍" label="Place" value={client.place} iconClass="bg-pink-500/10" />
-              <InfoRow icon="🗓️" label="First Visit" value={new Date(client.firstVisit).toLocaleDateString()} iconClass="bg-green-500/10" />
-              <InfoRow icon="📅" label="Next Visit" value={new Date(client.nextVisit).toLocaleDateString()} iconClass="bg-purple-500/10" />
-            </div>
+            {/* Contact Info Grid */}
+            <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+              <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                <Phone size={16} className="text-cyan-400 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-400">Phone</p>
+                  <p className="text-sm font-medium text-white truncate">{client.phone}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors">
+                <MapPin size={16} className="text-pink-400 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-400">Location</p>
+                  <p className="text-sm font-medium text-white truncate">{client.place}</p>
+                </div>
+              </div>
+            </motion.div>
 
+            {/* Dates Grid */}
+            <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+              <div className="flex items-center space-x-3 p-3 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                <Calendar size={16} className="text-blue-400 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-blue-400 font-medium">First Visit</p>
+                  <p className="text-sm text-white">{new Date(client.firstVisit).toLocaleDateString()}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3 p-3 bg-purple-500/10 rounded-xl border border-purple-500/20">
+                <Calendar size={16} className="text-purple-400 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-purple-400 font-medium">Next Visit</p>
+                  <p className="text-sm text-white">{new Date(client.nextVisit).toLocaleDateString()}</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Deal Value */}
             {client.deal && (
-              <motion.div variants={detailsVariants} className="mt-4 p-4 bg-slate-900/50 rounded-lg">
-                <p className="text-sm text-emerald-400 font-bold">Deal Value</p>
-                <p className="text-2xl font-black text-white">
-                  {parseFloat(client.deal).toLocaleString()} Birr
-                </p>
+              <motion.div variants={itemVariants} className="mt-3 p-4 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-xl border border-emerald-500/20">
+                <div className="flex items-center space-x-3">
+                  <DollarSign size={20} className="text-emerald-400" />
+                  <div>
+                    <p className="text-xs text-emerald-400 font-medium">Deal Value</p>
+                    <p className="text-xl font-black bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                      {parseFloat(client.deal).toLocaleString()} Birr
+                    </p>
+                  </div>
+                </div>
               </motion.div>
             )}
 
+            {/* Description */}
             {client.description && (
-              <motion.div variants={detailsVariants} className="mt-4 p-4 bg-slate-900/50 rounded-lg">
-                <p className="text-sm text-gray-400 font-bold">Notes</p>
-                <p className="text-white/80 text-sm leading-relaxed">{client.description}</p>
+              <motion.div variants={itemVariants} className="mt-3 p-4 bg-white/5 rounded-xl">
+                <div className="flex items-start space-x-3">
+                  <FileText size={16} className="text-gray-400 mt-1 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs text-gray-400 font-medium mb-1">Notes</p>
+                    <p className="text-sm text-white/80 leading-relaxed">{client.description}</p>
+                  </div>
+                </div>
               </motion.div>
             )}
 
-            <motion.div variants={detailsVariants} className="flex gap-3 mt-4">
-              <button
-                onClick={() => onEdit(client)}
-                className="flex-1 bg-amber-500/80 text-white py-2 px-4 rounded-lg font-semibold hover:bg-amber-500 transition-colors duration-300"
+            {/* Action Buttons */}
+            <motion.div variants={itemVariants} className="flex gap-2 mt-4">
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(client);
+                }}
+                className="flex-1 bg-gradient-to-r from-amber-500/80 to-orange-500/80 text-white py-2.5 px-4 rounded-xl font-semibold hover:from-amber-500 hover:to-orange-500 transition-all duration-300 text-sm"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                Edit
-              </button>
-              <button
-                onClick={() => onDelete(client._id)}
-                className="flex-1 bg-red-500/80 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-500 transition-colors duration-300"
+                ✏️ Edit
+              </motion.button>
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(client._id);
+                }}
+                className="flex-1 bg-gradient-to-r from-red-500/80 to-pink-500/80 text-white py-2.5 px-4 rounded-xl font-semibold hover:from-red-500 hover:to-pink-500 transition-all duration-300 text-sm"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                Delete
-              </button>
+                🗑️ Delete
+              </motion.button>
             </motion.div>
           </motion.div>
         )}
