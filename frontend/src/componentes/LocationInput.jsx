@@ -189,13 +189,13 @@ const LocationInput = ({ value, onChange, name, placeholder = "Enter location", 
 
   return (
     <div className="space-y-2">
-      {/* Area Name Input */}
+      {/* Single Location Input - shows area name, stores precise location in background */}
       <div className="flex gap-2">
         <input
           value={areaName}
           onChange={handleAreaChange}
           required={required}
-          placeholder="Area name (e.g., Downtown, Bole)"
+          placeholder={placeholder}
           className="flex-1 px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm"
         />
         {isGeolocationSupported && (
@@ -228,31 +228,6 @@ const LocationInput = ({ value, onChange, name, placeholder = "Enter location", 
               </>
             )}
           </button>
-        )}
-      </div>
-      
-      {/* Precise Location Input */}
-      <div className="space-y-1">
-        <input
-          value={preciseLocation}
-          onChange={handlePreciseChange}
-          placeholder="Precise location (address, coordinates, or Google Maps link)"
-          className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm"
-        />
-        {preciseLocation && preciseLocation.includes('maps.google.com') && (
-          <div className="flex items-center text-xs text-cyan-400">
-            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-            <a 
-              href={preciseLocation.split(' | ')[1] || preciseLocation} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="hover:text-cyan-300 underline"
-            >
-              Open in Google Maps
-            </a>
-          </div>
         )}
       </div>
       
