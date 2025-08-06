@@ -6,7 +6,7 @@ import hapticFeedback from '../utils/haptics';
 const statusConfig = {
   started: {
     label: 'IGNITION',
-    icon: <Zap className="w-5 h-5" />,
+    icon: Zap,
     emoji: '🚀',
     bg: 'from-amber-500/30 via-orange-500/20 to-red-500/10',
     border: 'border-amber-400/40',
@@ -17,7 +17,7 @@ const statusConfig = {
   },
   active: {
     label: 'BLAZING',
-    icon: <Star className="w-5 h-5" />,
+    icon: Star,
     emoji: '⚡',
     bg: 'from-emerald-500/30 via-green-500/20 to-teal-500/10',
     border: 'border-emerald-400/40',
@@ -28,7 +28,7 @@ const statusConfig = {
   },
   onaction: {
     label: 'LOCKED ON',
-    icon: <Target className="w-5 h-5" />,
+    icon: Target,
     emoji: '🎯',
     bg: 'from-blue-500/30 via-indigo-500/20 to-purple-500/10',
     border: 'border-blue-400/40',
@@ -39,7 +39,7 @@ const statusConfig = {
   },
   closed: {
     label: 'SEALED',
-    icon: <Lock className="w-5 h-5" />,
+    icon: Lock,
     emoji: '🔒',
     bg: 'from-gray-500/30 via-slate-500/20 to-stone-500/10',
     border: 'border-gray-400/40',
@@ -340,7 +340,7 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.6 }}
               >
-                {callStatus === 'calling' ? <Phone className="w-6 h-6 animate-bounce" /> : config.icon}
+                {callStatus === 'calling' ? <Phone className="w-6 h-6 animate-bounce" /> : React.createElement(config.icon, { className: "w-5 h-5" })}
               </motion.div>
               
               {/* Urgency Indicator */}
