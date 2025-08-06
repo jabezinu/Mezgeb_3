@@ -29,33 +29,57 @@ const LocationInput = ({ value, onChange, name, placeholder = "Enter location", 
         try {
           const { latitude, longitude } = position.coords;
           
-          // Use reverse geocoding to get address
-          const response = await fetch(
-            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-          );
+          // Try multiple geocoding services for better reliability
+          let address = null;
           
-          if (response.ok) {
-            const data = await response.json();
-            const address = data.locality 
-              ? `${data.locality}, ${data.countryName}`
-              : `${data.city || data.principalSubdivision}, ${data.countryName}`;
+          try {
+            // First try: BigDataCloud (free, no API key needed)
+            const response = await fetch(
+              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+            );
             
-            onChange({
-              target: {
-                name,
-                value: address
-              }
-            });
-          } else {
-            // Fallback to coordinates if reverse geocoding fails
-            const coordsString = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-            onChange({
-              target: {
-                name,
-                value: coordsString
-              }
-            });
+            if (response.ok) {
+              const data = await response.json();
+              address = data.locality 
+                ? `${data.locality}, ${data.countryName}`
+                : `${data.city || data.principalSubdivision}, ${data.countryName}`;
+            }
+          } catch (error) {
+            console.log('BigDataCloud failed, trying alternative...');
           }
+          
+          // Fallback: Try OpenStreetMap Nominatim
+          if (!address) {
+            try {
+              const response = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+                {
+                  headers: {
+                    'User-Agent': 'ClientApp/1.0'
+                  }
+                }
+              );
+              
+              if (response.ok) {
+                const data = await response.json();
+                address = data.display_name ? data.display_name.split(',').slice(0, 3).join(', ') : null;
+              }
+            } catch (error) {
+              console.log('Nominatim also failed');
+            }
+          }
+          
+          // Final fallback to coordinates
+          if (!address) {
+            address = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+          }
+          
+          onChange({
+            target: {
+              name,
+              value: address
+            }
+          });
         } catch (error) {
           console.error('Error getting address:', error);
           // Fallback to coordinates
@@ -105,17 +129,17 @@ const LocationInput = ({ value, onChange, name, placeholder = "Enter location", 
           onChange={handleInputChange}
           required={required}
           placeholder={placeholder}
-          className="flex-1 px-4 py-3 border border-gray-600 bg-slate-900/40 text-white rounded-xl focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors"
+          className="flex-1 px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm"
         />
         {isGeolocationSupported && (
           <button
             type="button"
             onClick={getCurrentLocation}
             disabled={isGettingLocation}
-            className={`px-4 py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center min-w-[120px] ${
+            className={`px-3 py-2 rounded-lg font-medium transition-all duration-300 flex items-center justify-center min-w-[100px] text-sm ${
               isGettingLocation
                 ? 'bg-gray-500/50 text-gray-300 cursor-not-allowed'
-                : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-400 hover:to-teal-500 hover:shadow-lg hover:scale-105'
+                : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-400 hover:to-teal-500 hover:shadow-lg'
             }`}
             title="Get current location"
           >
@@ -129,11 +153,11 @@ const LocationInput = ({ value, onChange, name, placeholder = "Enter location", 
               </>
             ) : (
               <>
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                Use Current
+                Current
               </>
             )}
           </button>
