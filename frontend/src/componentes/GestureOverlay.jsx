@@ -99,7 +99,7 @@ const GestureOverlay = ({ onGesture }) => {
                 } transition-all duration-300`}
                 animate={gestureHint === 'swipe-up' ? { scale: 1.1, y: -10 } : {}}
               >
-                <gestures['swipe-up'].icon className="w-8 h-8 text-white mb-2" />
+                {React.createElement(gestures['swipe-up'].icon, { className: "w-8 h-8 text-white mb-2" })}
                 <span className="text-white font-bold text-sm">{gestures['swipe-up'].label}</span>
               </motion.div>
               <div></div>
@@ -111,7 +111,7 @@ const GestureOverlay = ({ onGesture }) => {
                 } transition-all duration-300`}
                 animate={gestureHint === 'swipe-left' ? { scale: 1.1, x: -10 } : {}}
               >
-                <gestures['swipe-left'].icon className="w-8 h-8 text-white mb-2" />
+                {React.createElement(gestures['swipe-left'].icon, { className: "w-8 h-8 text-white mb-2" })}
                 <span className="text-white font-bold text-sm">{gestures['swipe-left'].label}</span>
               </motion.div>
 
@@ -137,7 +137,7 @@ const GestureOverlay = ({ onGesture }) => {
                 } transition-all duration-300`}
                 animate={gestureHint === 'swipe-right' ? { scale: 1.1, x: 10 } : {}}
               >
-                <gestures['swipe-right'].icon className="w-8 h-8 text-white mb-2" />
+                {React.createElement(gestures['swipe-right'].icon, { className: "w-8 h-8 text-white mb-2" })}
                 <span className="text-white font-bold text-sm">{gestures['swipe-right'].label}</span>
               </motion.div>
 
@@ -149,7 +149,7 @@ const GestureOverlay = ({ onGesture }) => {
                 } transition-all duration-300`}
                 animate={gestureHint === 'swipe-down' ? { scale: 1.1, y: 10 } : {}}
               >
-                <gestures['swipe-down'].icon className="w-8 h-8 text-white mb-2" />
+                {React.createElement(gestures['swipe-down'].icon, { className: "w-8 h-8 text-white mb-2" })}
                 <span className="text-white font-bold text-sm">{gestures['swipe-down'].label}</span>
               </motion.div>
               <div></div>

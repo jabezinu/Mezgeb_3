@@ -75,7 +75,7 @@ const FloatingActionMenu = ({ onAddClient, onQuickCall, onViewStats }) => {
                   whileHover={{ rotate: 360 }}
                   transition={{ duration: 0.6 }}
                 >
-                  <item.icon size={20} />
+                  {React.createElement(item.icon, { size: 20 })}
                 </motion.div>
                 <span className="font-bold text-sm whitespace-nowrap">
                   {item.label}
