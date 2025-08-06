@@ -5,6 +5,7 @@ import StatsDashboard from '../componentes/StatsDashboard';
 import SearchFilterBar from '../componentes/SearchFilterBar';
 import ClientModal from '../componentes/ClientModal';
 import DeadClientsSection from '../componentes/DeadClientsSection';
+import FloatingActionMenu from '../componentes/FloatingActionMenu';
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
@@ -217,17 +218,41 @@ const Clients = () => {
           </div>
         </div>
         <StatsDashboard clients={clients} />
-        {/* Client Cards - Mobile Optimized Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-          {filteredClients.map(client => (
-            <ClientCard
+        {/* Revolutionary Client Grid */}
+        <motion.div 
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            duration: 0.8,
+            staggerChildren: 0.1,
+            delayChildren: 0.2
+          }}
+        >
+          {filteredClients.map((client, index) => (
+            <motion.div
               key={client._id}
-              client={client}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
+              initial={{ opacity: 0, y: 50, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ 
+                duration: 0.6,
+                delay: index * 0.1,
+                ease: [0.23, 1, 0.32, 1]
+              }}
+              whileInView={{ 
+                opacity: 1,
+                transition: { duration: 0.6 }
+              }}
+              viewport={{ once: true, margin: "-100px" }}
+            >
+              <ClientCard
+                client={client}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
         {/* Empty State */}
         {filteredClients.length === 0 && clients.length > 0 && deadClients.length === 0 && (
           <div className="text-center py-20">
@@ -279,6 +304,18 @@ const Clients = () => {
         setForm={setForm}
         editingId={editingId}
         error={error}
+      />
+
+      {/* Revolutionary Floating Action Menu */}
+      <FloatingActionMenu
+        onAddClient={openAddModal}
+        onQuickCall={() => {
+          const randomClient = filteredClients[Math.floor(Math.random() * filteredClients.length)];
+          if (randomClient) window.open(`tel:${randomClient.phone}`, '_self');
+        }}
+        onViewStats={() => {
+          document.querySelector('.grid').scrollIntoView({ behavior: 'smooth' });
+        }}
       />
     </div>
   );
