@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import api from '../api';
 import CallTodayCard from '../componentes/CallTodayCard';
+import FloatingActionMenu from '../componentes/FloatingActionMenu';
 
 const CallToday = () => {
   const [clients, setClients] = useState([]);
@@ -97,25 +98,63 @@ const CallToday = () => {
             <p className="text-gray-400 text-lg mb-8">You're all caught up!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {clients.map(client => {
+          <motion.div 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              duration: 0.8,
+              staggerChildren: 0.15,
+              delayChildren: 0.3
+            }}
+          >
+            {clients.map((client, index) => {
               const nextVisitDate = new Date(client.nextVisit);
               nextVisitDate.setHours(0,0,0,0);
               const today = new Date();
               today.setHours(0,0,0,0);
               const isMissed = nextVisitDate < today;
               return (
-                <CallTodayCard
+                <motion.div
                   key={client._id}
-                  client={client}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  isMissed={isMissed}
-                />
+                  initial={{ opacity: 0, y: 60, scale: 0.8 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ 
+                    duration: 0.7,
+                    delay: index * 0.15,
+                    ease: [0.23, 1, 0.32, 1]
+                  }}
+                  whileInView={{ 
+                    opacity: 1,
+                    transition: { duration: 0.6 }
+                  }}
+                  viewport={{ once: true, margin: "-50px" }}
+                >
+                  <CallTodayCard
+                    client={client}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    isMissed={isMissed}
+                  />
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
+
+        {/* Revolutionary Floating Action Menu */}
+        <FloatingActionMenu
+          onAddClient={() => window.location.href = '/clients'}
+          onQuickCall={() => {
+            const urgentClient = clients.find(c => {
+              const nextVisitDate = new Date(c.nextVisit);
+              const today = new Date();
+              return nextVisitDate < today;
+            });
+            if (urgentClient) window.open(`tel:${urgentClient.phone}`, '_self');
+          }}
+          onViewStats={() => window.location.href = '/clients'}
+        />
       </div>
     </div>
   )
