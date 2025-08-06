@@ -346,7 +346,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                   whileHover={{ scale: 1.1 }}
                 >
                   <MapPin className="w-3 h-3" />
-                  <span>{client.place?.slice(0, 8)}...</span>
+                  <span>{client.place?.split(' | ')[0]?.slice(0, 8) || client.place?.slice(0, 8)}...</span>
                 </motion.span>
               </div>
             </div>
@@ -420,7 +420,13 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                 { icon: Phone, color: 'from-green-500 to-emerald-600', action: () => { hapticFeedback.success(); window.open(`tel:${client.phone}`, '_self'); }, label: 'Call', effect: '' },
                 { icon: MessageCircle, color: 'from-blue-500 to-cyan-600', action: () => { hapticFeedback.medium(); window.open(`sms:${client.phone}`, '_self'); }, label: 'SMS', effect: '' },
                 { icon: Mail, color: 'from-purple-500 to-pink-600', action: () => { hapticFeedback.light(); window.open(`mailto:${client.email || ''}`, '_self'); }, label: 'Email', effect: '' },
-                { icon: ExternalLink, color: 'from-orange-500 to-red-600', action: () => { hapticFeedback.medium(); window.open(`https://maps.google.com/?q=${client.place}`, '_blank'); }, label: 'Map', effect: '' }
+                { icon: ExternalLink, color: 'from-orange-500 to-red-600', action: () => { 
+                  hapticFeedback.medium(); 
+                  const mapUrl = client.place?.includes(' | ') && client.place.split(' | ')[1]?.includes('maps.google.com') 
+                    ? client.place.split(' | ')[1].split(' | ')[1] || client.place.split(' | ')[1]
+                    : `https://maps.google.com/?q=${encodeURIComponent(client.place?.split(' | ')[0] || client.place)}`;
+                  window.open(mapUrl, '_blank'); 
+                }, label: 'Map', effect: '' }
               ].map((item, index) => (
                 <motion.button
                   key={index}
@@ -500,9 +506,25 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                   </motion.div>
                   <div className="min-w-0">
                     <p className="text-xs text-pink-400 font-bold uppercase tracking-wider">Location</p>
-                    <p className="text-sm font-bold text-white truncate group-hover:text-pink-300 transition-colors">
-                      {client.place}
-                    </p>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-white truncate group-hover:text-pink-300 transition-colors">
+                        {client.place?.split(' | ')[0] || client.place}
+                      </p>
+                      {client.place?.includes(' | ') && client.place.split(' | ')[1]?.includes('maps.google.com') && (
+                        <a 
+                          href={client.place.split(' | ')[1].split(' | ')[1] || client.place.split(' | ')[1]} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-cyan-400 hover:text-cyan-300 underline flex items-center mt-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                          View on Map
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               </motion.div>

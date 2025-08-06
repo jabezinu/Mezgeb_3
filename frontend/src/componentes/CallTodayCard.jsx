@@ -648,7 +648,23 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
                     <MapPin size={16} className="text-pink-400 flex-shrink-0" />
                     <div className="min-w-0">
                       <p className="text-xs text-gray-400">Location</p>
-                      <p className="text-sm font-medium text-white truncate">{client.place}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-white truncate">{client.place?.split(' | ')[0] || client.place}</p>
+                        {client.place?.includes(' | ') && client.place.split(' | ')[1]?.includes('maps.google.com') && (
+                          <a 
+                            href={client.place.split(' | ')[1].split(' | ')[1] || client.place.split(' | ')[1]} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-cyan-400 hover:text-cyan-300 underline flex items-center mt-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Map
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
