@@ -76,7 +76,7 @@ const CallToday = () => {
       </div>
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 relative z-10">
         <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-4 animate-pulse">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
             📞 Call Today
           </h1>
           <p className="text-lg sm:text-xl text-gray-300 font-light px-4">Clients scheduled for a call today</p>
@@ -96,7 +96,7 @@ const CallToday = () => {
           </div>
         ) : clients.length === 0 ? (
           <div className="text-center py-20">
-            <div className="text-8xl mb-8 animate-bounce">📞</div>
+            <div className="text-8xl mb-8">📞</div>
             <h3 className="text-3xl font-bold text-white mb-4">No clients to call today.</h3>
             <p className="text-gray-400 text-lg mb-8">You're all caught up!</p>
           </div>

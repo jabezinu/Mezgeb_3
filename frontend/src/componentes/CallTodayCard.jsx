@@ -12,7 +12,7 @@ const statusConfig = {
     border: 'border-amber-400/40',
     text: 'text-amber-300',
     glow: 'shadow-amber-500/40',
-    pulse: 'animate-pulse',
+    pulse: '',
     particles: 'from-amber-400 to-orange-500',
   },
   active: {
@@ -23,7 +23,7 @@ const statusConfig = {
     border: 'border-emerald-400/40',
     text: 'text-emerald-300',
     glow: 'shadow-emerald-500/40',
-    pulse: 'animate-bounce',
+    pulse: '',
     particles: 'from-emerald-400 to-teal-500',
   },
   onaction: {
@@ -34,7 +34,7 @@ const statusConfig = {
     border: 'border-blue-400/40',
     text: 'text-blue-300',
     glow: 'shadow-blue-500/40',
-    pulse: 'animate-ping',
+    pulse: '',
     particles: 'from-blue-400 to-purple-500',
   },
   closed: {
@@ -194,10 +194,10 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
       className={`relative bg-gradient-to-br ${config.bg} backdrop-blur-2xl rounded-3xl border-2 ${config.border} hover:${config.glow} hover:shadow-2xl transition-all duration-500 overflow-hidden group cursor-grab active:cursor-grabbing ${
         isMissed 
           ? urgencyLevel === 'critical' 
-            ? 'ring-4 ring-red-500/80 animate-pulse shadow-red-500/50' 
+            ? 'ring-4 ring-red-500/80 shadow-red-500/50' 
             : urgencyLevel === 'high'
-              ? 'ring-3 ring-orange-500/70 animate-bounce shadow-orange-500/40'
-              : 'ring-2 ring-yellow-500/60 animate-pulse shadow-yellow-500/30'
+              ? 'ring-3 ring-orange-500/70 shadow-orange-500/40'
+              : 'ring-2 ring-yellow-500/60 shadow-yellow-500/30'
           : ''
       }`}
       whileHover={{ 
@@ -241,9 +241,7 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
         <motion.div
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className={`absolute top-0 left-0 right-0 bg-gradient-to-r ${urgencyColors[urgencyLevel]} text-white text-xs font-black py-2 px-4 text-center z-10 ${
-            urgencyLevel === 'critical' ? 'animate-pulse' : urgencyLevel === 'high' ? 'animate-bounce' : ''
-          }`}
+          className={`absolute top-0 left-0 right-0 bg-gradient-to-r ${urgencyColors[urgencyLevel]} text-white text-xs font-black py-2 px-4 text-center z-10`}
         >
           {urgencyLevel === 'critical' && '🚨 CRITICAL: '}
           {urgencyLevel === 'high' && '⚠️ HIGH PRIORITY: '}
@@ -340,7 +338,7 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.6 }}
               >
-                {callStatus === 'calling' ? <Phone className="w-6 h-6 animate-bounce" /> : React.createElement(config.icon, { className: "w-5 h-5" })}
+                {callStatus === 'calling' ? <Phone className="w-6 h-6" /> : React.createElement(config.icon, { className: "w-5 h-5" })}
               </motion.div>
               
               {/* Urgency Indicator */}
@@ -351,8 +349,8 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
                     urgencyLevel === 'high' ? 'bg-orange-500' : 'bg-yellow-500'
                   }`}
                   animate={{
-                    scale: [1, 1.3, 1],
-                    rotate: [0, 180, 360]
+                    scale: 1,
+                    rotate: 0
                   }}
                   transition={{
                     duration: 2,
@@ -367,8 +365,8 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
               <motion.div
                 className="absolute -bottom-1 -right-1 text-xl"
                 animate={{
-                  scale: [1, 1.2, 1],
-                  rotate: [0, 15, -15, 0]
+                  scale: 1,
+                  rotate: 0
                 }}
                 transition={{
                   duration: 3,
@@ -458,14 +456,14 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
               }}
               whileTap={{ scale: 0.9 }}
               animate={callStatus === 'calling' ? {
-                scale: [1, 1.2, 1],
-                rotate: [0, 360]
+                scale: 1,
+                rotate: 0
               } : {}}
             >
               <motion.div
                 animate={callStatus === 'calling' ? {
-                  scale: [1, 1.5, 1],
-                  opacity: [1, 0.5, 1]
+                  scale: 1,
+                  opacity: 1
                 } : {}}
                 transition={{ duration: 0.8, repeat: Infinity }}
               >

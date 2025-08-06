@@ -12,7 +12,7 @@ const statusConfig = {
     border: 'border-amber-400/40',
     text: 'text-amber-300',
     glow: 'shadow-amber-500/30',
-    pulse: 'animate-pulse',
+    pulse: '',
     particles: 'from-amber-400 to-orange-500',
   },
   active: {
@@ -23,7 +23,7 @@ const statusConfig = {
     border: 'border-emerald-400/40',
     text: 'text-emerald-300',
     glow: 'shadow-emerald-500/30',
-    pulse: 'animate-bounce',
+    pulse: '',
     particles: 'from-emerald-400 to-teal-500',
   },
   onaction: {
@@ -34,7 +34,7 @@ const statusConfig = {
     border: 'border-blue-400/40',
     text: 'text-blue-300',
     glow: 'shadow-blue-500/30',
-    pulse: 'animate-ping',
+    pulse: '',
     particles: 'from-blue-400 to-purple-500',
   },
   closed: {
@@ -56,7 +56,7 @@ const statusConfig = {
     border: 'border-red-400/40',
     text: 'text-red-300',
     glow: 'shadow-red-500/30',
-    pulse: 'animate-pulse',
+    pulse: '',
     particles: 'from-red-400 to-pink-500',
   },
 };
@@ -181,7 +181,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
       animate={isExpanded ? "expanded" : "collapsed"}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      className={`relative bg-gradient-to-br ${config.bg} backdrop-blur-2xl rounded-3xl border-2 ${config.border} hover:${config.glow} hover:shadow-2xl transition-all duration-500 overflow-hidden group cursor-grab active:cursor-grabbing ${isUrgent ? 'ring-2 ring-yellow-400/50 animate-pulse' : ''} ${isOverdue ? 'ring-2 ring-red-500/70 animate-bounce' : ''}`}
+      className={`relative bg-gradient-to-br ${config.bg} backdrop-blur-2xl rounded-3xl border-2 ${config.border} hover:${config.glow} hover:shadow-2xl transition-all duration-500 overflow-hidden group cursor-grab active:cursor-grabbing ${isUrgent ? 'ring-2 ring-yellow-400/50' : ''} ${isOverdue ? 'ring-2 ring-red-500/70' : ''}`}
       whileHover={{
         scale: 1.03,
         rotateX: 5,
@@ -299,8 +299,8 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
               <motion.div
                 className="absolute -top-1 -right-1 text-lg"
                 animate={{
-                  scale: [1, 1.2, 1],
-                  rotate: [0, 10, -10, 0]
+                  scale: 1,
+                  rotate: 0
                 }}
                 transition={{
                   duration: 2,
@@ -417,10 +417,10 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
             {/* Quick Action Bar */}
             <motion.div variants={itemVariants} className="flex justify-center space-x-2 mt-4 mb-6">
               {[
-                { icon: Phone, color: 'from-green-500 to-emerald-600', action: () => { hapticFeedback.success(); window.open(`tel:${client.phone}`, '_self'); }, label: 'Call', effect: 'animate-pulse' },
-                { icon: MessageCircle, color: 'from-blue-500 to-cyan-600', action: () => { hapticFeedback.medium(); window.open(`sms:${client.phone}`, '_self'); }, label: 'SMS', effect: 'animate-bounce' },
-                { icon: Mail, color: 'from-purple-500 to-pink-600', action: () => { hapticFeedback.light(); window.open(`mailto:${client.email || ''}`, '_self'); }, label: 'Email', effect: 'animate-ping' },
-                { icon: ExternalLink, color: 'from-orange-500 to-red-600', action: () => { hapticFeedback.medium(); window.open(`https://maps.google.com/?q=${client.place}`, '_blank'); }, label: 'Map', effect: 'animate-spin' }
+                { icon: Phone, color: 'from-green-500 to-emerald-600', action: () => { hapticFeedback.success(); window.open(`tel:${client.phone}`, '_self'); }, label: 'Call', effect: '' },
+                { icon: MessageCircle, color: 'from-blue-500 to-cyan-600', action: () => { hapticFeedback.medium(); window.open(`sms:${client.phone}`, '_self'); }, label: 'SMS', effect: '' },
+                { icon: Mail, color: 'from-purple-500 to-pink-600', action: () => { hapticFeedback.light(); window.open(`mailto:${client.email || ''}`, '_self'); }, label: 'Email', effect: '' },
+                { icon: ExternalLink, color: 'from-orange-500 to-red-600', action: () => { hapticFeedback.medium(); window.open(`https://maps.google.com/?q=${client.place}`, '_blank'); }, label: 'Map', effect: '' }
               ].map((item, index) => (
                 <motion.button
                   key={index}
@@ -519,7 +519,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                   className="flex items-center space-x-4 p-3 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-xl border border-blue-500/20"
                   whileHover={{ x: 5 }}
                 >
-                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                   <div>
                     <p className="text-xs text-blue-400 font-bold">FIRST CONTACT</p>
                     <p className="text-sm text-white">{new Date(client.firstVisit).toLocaleDateString()}</p>
@@ -537,7 +537,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                   animate={isOverdue || isUrgent ? { scale: [1, 1.02, 1] } : {}}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <div className={`w-3 h-3 rounded-full ${isOverdue ? 'bg-red-500 animate-bounce' : isUrgent ? 'bg-yellow-500 animate-pulse' : 'bg-purple-500'
+                  <div className={`w-3 h-3 rounded-full ${isOverdue ? 'bg-red-500' : isUrgent ? 'bg-yellow-500' : 'bg-purple-500'
                     }`}></div>
                   <div>
                     <p className={`text-xs font-bold ${isOverdue ? 'text-red-400' : isUrgent ? 'text-yellow-400' : 'text-purple-400'
