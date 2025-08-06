@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion';
-import { ChevronDown, Phone, MapPin, Calendar, DollarSign, FileText, AlertCircle, Zap, Star, Target, Lock, MessageCircle, Video, Mail, Clock, TrendingUp, Activity } from 'lucide-react';
+import { ChevronDown, Phone, MapPin, Calendar, DollarSign, FileText, AlertCircle, Zap, Star, Target, Lock, MessageCircle, Video, Mail, Clock, TrendingUp, Activity, Sparkles, Flame, Eye, CheckCircle } from 'lucide-react';
+import hapticFeedback from '../utils/haptics';
 
 const statusConfig = {
   started: {
@@ -80,11 +81,16 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
 
   const handleQuickCall = () => {
     setCallStatus('calling');
+    hapticFeedback.success();
     window.open(`tel:${client.phone}`, '_self');
-    setTimeout(() => setCallStatus('completed'), 2000);
+    setTimeout(() => {
+      setCallStatus('completed');
+      hapticFeedback.notification();
+    }, 2000);
   };
 
   const handleMarkCompleted = () => {
+    hapticFeedback.heavy();
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 7); // Schedule next week
     const updatedClient = {
@@ -273,7 +279,14 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
       {/* Revolutionary Call-Ready Header */}
       <motion.div 
         className={`p-5 cursor-pointer min-h-[90px] flex items-center relative ${isMissed ? 'pt-10' : ''}`}
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={() => {
+          hapticFeedback.light();
+          setIsExpanded(!isExpanded);
+        }}
+        onDoubleClick={() => {
+          hapticFeedback.heavy();
+          handleQuickCall();
+        }}
         whileTap={{ scale: 0.97 }}
         whileHover={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
       >
