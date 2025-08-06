@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { motion } from 'framer-motion';
 import api from '../api';
 import CallTodayCard from '../componentes/CallTodayCard';
 import FloatingActionMenu from '../componentes/FloatingActionMenu';
