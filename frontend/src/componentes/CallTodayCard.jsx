@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { ChevronDown, Phone, MapPin, Calendar, DollarSign, FileText, AlertCircle, Zap, Star, Target, Lock, MessageCircle, Video, Mail, Clock, TrendingUp, Activity, Sparkles, Flame, Eye, CheckCircle } from 'lucide-react';
 import hapticFeedback from '../utils/haptics';
 
@@ -67,7 +67,7 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
   const daysOverdue = Math.abs(Math.ceil((new Date(client.nextVisit) - new Date()) / (1000 * 60 * 60 * 24)));
   const urgencyLevel = isMissed ? (daysOverdue > 7 ? 'critical' : daysOverdue > 3 ? 'high' : 'medium') : 'normal';
 
-  const handlePanEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  const handlePanEnd = (event, info) => {
     const threshold = 120;
     if (info.offset.x > threshold) {
       // Swipe right - Instant call
