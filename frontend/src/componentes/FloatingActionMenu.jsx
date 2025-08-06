@@ -107,8 +107,8 @@ const FloatingActionMenu = ({ onAddClient, onQuickCall, onViewStats }) => {
         <motion.div
           className="absolute inset-0 border-4 border-purple-400 rounded-full"
           animate={{
-            scale: [1, 1.5, 1],
-            opacity: [1, 0, 1]
+            scale: 1,
+            opacity: 0.7
           }}
           transition={{
             duration: 2,

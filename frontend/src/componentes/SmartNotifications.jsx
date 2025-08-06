@@ -128,7 +128,7 @@ const SmartNotifications = ({ clients }) => {
         {notifications.length > 0 && (
           <motion.div
             className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold"
-            animate={{ scale: [1, 1.2, 1] }}
+            animate={{ scale: 1 }}
             transition={{ duration: 1, repeat: Infinity }}
           >
             {notifications.length}
