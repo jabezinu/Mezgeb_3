@@ -33,12 +33,19 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
     }
   };
 
-  // Prevent body scroll when modal is open
+  // Prevent body scroll when modal is open and handle focus
   React.useEffect(() => {
     if (open) {
+      // Prevent body scroll
       document.body.style.overflow = 'hidden';
-      // Scroll to top when modal opens
-      window.scrollTo(0, 0);
+      
+      // Focus the first input when modal opens
+      setTimeout(() => {
+        const firstInput = document.querySelector('input[name="businessName"]');
+        if (firstInput) {
+          firstInput.focus();
+        }
+      }, 100);
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -49,9 +56,27 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
     };
   }, [open]);
 
+  // Handle escape key to close modal
+  React.useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && open) {
+        onClose();
+      }
+    };
+
+    if (open) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [open, onClose]);
+
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-lg flex items-start justify-center p-4 z-50 animate-fadeIn overflow-y-auto">
-      <div className="bg-gradient-to-br from-slate-800/90 to-purple-900/90 backdrop-blur-xl rounded-3xl p-6 max-w-2xl w-full my-8 shadow-2xl border border-white/20 relative">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-lg z-50 animate-fadeIn">
+      <div className="h-full overflow-y-auto flex items-start justify-center p-2 sm:p-4">
+        <div className="bg-gradient-to-br from-slate-800/90 to-purple-900/90 backdrop-blur-xl rounded-3xl p-4 sm:p-6 max-w-2xl w-full my-4 sm:my-8 shadow-2xl border border-white/20 relative min-h-fit">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl blur-3xl animate-pulse"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-6">
@@ -192,7 +217,7 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
                 className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm"
               />
             </div>
-            <div className="flex gap-3 pt-3">
+            <div className="flex gap-3 pt-3 pb-2">
               <button
                 type="submit"
                 className="flex-1 bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 text-white py-2 px-4 rounded-lg font-semibold hover:from-cyan-400 hover:to-pink-500 transition-all duration-300 hover:shadow-lg text-sm"
@@ -208,6 +233,7 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
               </button>
             </div>
           </form>
+        </div>
         </div>
       </div>
     </div>
