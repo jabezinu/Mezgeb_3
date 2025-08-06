@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { ChevronDown, Phone, MapPin, Calendar, DollarSign, FileText, Star, Zap, Target, Lock, Skull, MessageCircle, Video, Mail, ExternalLink, Sparkles, Flame, Eye } from 'lucide-react';
 import hapticFeedback from '../utils/haptics';
 
@@ -78,7 +78,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
   const isUrgent = daysUntilVisit <= 3 && daysUntilVisit >= 0;
   const isOverdue = daysUntilVisit < 0;
 
-  const handlePanEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  const handlePanEnd = (event, info) => {
     const threshold = 100;
     if (info.offset.x > threshold) {
       setSwipeDirection('right');
