@@ -510,19 +510,24 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                       <p className="text-sm font-bold text-white truncate group-hover:text-pink-300 transition-colors">
                         {client.place?.split(' | ')[0] || client.place}
                       </p>
+                      {/* View Location button - only shown in expanded view */}
                       {client.place?.includes(' | ') && client.place.split(' | ')[1]?.includes('maps.google.com') && (
-                        <a 
-                          href={client.place.split(' | ')[1].split(' | ')[1] || client.place.split(' | ')[1]} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-xs text-cyan-400 hover:text-cyan-300 underline flex items-center mt-1"
-                          onClick={(e) => e.stopPropagation()}
+                        <motion.button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const mapUrl = client.place.split(' | ')[1].split(' | ')[1] || client.place.split(' | ')[1];
+                            window.open(mapUrl, '_blank');
+                          }}
+                          className="mt-2 px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-semibold rounded-lg hover:from-blue-400 hover:to-cyan-400 transition-all duration-300 flex items-center"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
                           <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
-                          View on Map
-                        </a>
+                          View Location
+                        </motion.button>
                       )}
                     </div>
                   </div>
