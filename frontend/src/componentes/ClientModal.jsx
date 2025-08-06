@@ -123,7 +123,10 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-200 mb-2">Place</label>
+                <label className="block text-sm font-medium text-gray-200 mb-2">
+                  Location
+                  <span className="text-xs text-gray-400 ml-2">(Area + Precise Location)</span>
+                </label>
                 <LocationInput
                   name="place"
                   value={form.place}
