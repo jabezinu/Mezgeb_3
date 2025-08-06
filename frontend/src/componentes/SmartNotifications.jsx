@@ -184,7 +184,7 @@ const SmartNotifications = ({ clients }) => {
                         whileHover={{ rotate: 360 }}
                         transition={{ duration: 0.6 }}
                       >
-                        <notification.icon size={20} className="text-white" />
+                        {React.createElement(notification.icon, { size: 20, className: "text-white" })}
                       </motion.div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-white font-bold text-sm mb-1">

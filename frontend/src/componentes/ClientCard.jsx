@@ -70,9 +70,9 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
   const x = useMotionValue(0);
   const rotateY = useTransform(x, [-200, 0, 200], [-15, 0, 15]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 0.8, 1, 0.8, 0.5]);
-  
+
   const config = statusConfig[client.status] || statusConfig.closed;
-  
+
   // Calculate days until next visit
   const daysUntilVisit = Math.ceil((new Date(client.nextVisit) - new Date()) / (1000 * 60 * 60 * 24));
   const isUrgent = daysUntilVisit <= 3 && daysUntilVisit >= 0;
@@ -105,8 +105,8 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
     collapsed: {
       height: 'auto',
       scale: 1,
-      transition: { 
-        duration: 0.6, 
+      transition: {
+        duration: 0.6,
         ease: [0.23, 1, 0.32, 1],
         staggerChildren: 0.1
       }
@@ -114,8 +114,8 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
     expanded: {
       height: 'auto',
       scale: 1.02,
-      transition: { 
-        duration: 0.6, 
+      transition: {
+        duration: 0.6,
         ease: [0.23, 1, 0.32, 1],
         staggerChildren: 0.1
       }
@@ -123,17 +123,17 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
   };
 
   const contentVariants = {
-    hidden: { 
-      opacity: 0, 
+    hidden: {
+      opacity: 0,
       y: -20,
       scale: 0.95,
       transition: { duration: 0.3 }
     },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       scale: 1,
-      transition: { 
+      transition: {
         duration: 0.5,
         ease: [0.23, 1, 0.32, 1],
         staggerChildren: 0.08,
@@ -144,9 +144,9 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
 
   const itemVariants = {
     hidden: { opacity: 0, x: -20, scale: 0.9 },
-    visible: { 
-      opacity: 1, 
-      x: 0, 
+    visible: {
+      opacity: 1,
+      x: 0,
       scale: 1,
       transition: {
         duration: 0.4,
@@ -182,7 +182,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       className={`relative bg-gradient-to-br ${config.bg} backdrop-blur-2xl rounded-3xl border-2 ${config.border} hover:${config.glow} hover:shadow-2xl transition-all duration-500 overflow-hidden group cursor-grab active:cursor-grabbing ${isUrgent ? 'ring-2 ring-yellow-400/50 animate-pulse' : ''} ${isOverdue ? 'ring-2 ring-red-500/70 animate-bounce' : ''}`}
-      whileHover={{ 
+      whileHover={{
         scale: 1.03,
         rotateX: 5,
         transition: { duration: 0.3 }
@@ -213,11 +213,10 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
-            className={`absolute inset-0 flex items-center justify-center z-20 ${
-              swipeDirection === 'right' 
-                ? 'bg-green-500/20 text-green-300' 
-                : 'bg-blue-500/20 text-blue-300'
-            } backdrop-blur-sm rounded-3xl`}
+            className={`absolute inset-0 flex items-center justify-center z-20 ${swipeDirection === 'right'
+              ? 'bg-green-500/20 text-green-300'
+              : 'bg-blue-500/20 text-blue-300'
+              } backdrop-blur-sm rounded-3xl`}
           >
             <div className="text-center">
               {swipeDirection === 'right' ? (
@@ -241,15 +240,14 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
         <motion.div
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className={`absolute top-0 left-0 right-0 ${
-            isOverdue ? 'bg-red-500/90' : 'bg-yellow-500/90'
-          } text-white text-xs font-bold py-1 px-3 text-center z-10`}
+          className={`absolute top-0 left-0 right-0 ${isOverdue ? 'bg-red-500/90' : 'bg-yellow-500/90'
+            } text-white text-xs font-bold py-1 px-3 text-center z-10`}
         >
           {isOverdue ? `⚠️ OVERDUE BY ${Math.abs(daysUntilVisit)} DAYS` : `🔥 URGENT - ${daysUntilVisit} DAYS LEFT`}
         </motion.div>
       )}
       {/* Revolutionary Header */}
-      <motion.div 
+      <motion.div
         className={`p-5 cursor-pointer min-h-[80px] flex items-center relative ${isUrgent || isOverdue ? 'pt-8' : ''}`}
         onClick={() => {
           hapticFeedback.light();
@@ -265,10 +263,10 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
         <div className="flex items-center justify-between w-full">
           {/* Revolutionary Avatar Section */}
           <div className="flex items-center space-x-4 flex-1 min-w-0">
-            <motion.div 
+            <motion.div
               className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${config.bg} border-2 ${config.border} flex items-center justify-center shadow-2xl overflow-hidden`}
-              whileHover={{ 
-                scale: 1.15, 
+              whileHover={{
+                scale: 1.15,
                 rotate: [0, -5, 5, 0],
                 transition: { duration: 0.5 }
               }}
@@ -287,7 +285,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                   ease: "linear"
                 }}
               />
-              
+
               {/* Status Icon */}
               <motion.div
                 className={`relative z-10 ${config.text} ${config.pulse}`}
@@ -296,7 +294,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
               >
                 {config.icon}
               </motion.div>
-              
+
               {/* Emoji Overlay */}
               <motion.div
                 className="absolute -top-1 -right-1 text-lg"
@@ -313,12 +311,12 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                 {config.emoji}
               </motion.div>
             </motion.div>
-            
+
             {/* Client Info with Animations */}
             <div className="flex-1 min-w-0">
-              <motion.h3 
+              <motion.h3
                 className="font-black text-white text-base sm:text-lg truncate mb-1"
-                animate={isHovered ? { 
+                animate={isHovered ? {
                   backgroundImage: 'linear-gradient(45deg, #06b6d4, #8b5cf6, #ec4899)',
                   backgroundClip: 'text',
                   color: 'transparent'
@@ -327,23 +325,23 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
               >
                 {client.businessName}
               </motion.h3>
-              <motion.p 
+              <motion.p
                 className="text-sm text-gray-300 truncate mb-1"
                 whileHover={{ color: '#ffffff' }}
               >
                 👤 {client.managerName}
               </motion.p>
-              
+
               {/* Quick Stats */}
               <div className="flex items-center space-x-3 text-xs">
-                <motion.span 
+                <motion.span
                   className="flex items-center space-x-1 text-cyan-400"
                   whileHover={{ scale: 1.1 }}
                 >
                   <Phone className="w-3 h-3" />
                   <span>{client.phone?.slice(-4)}</span>
                 </motion.span>
-                <motion.span 
+                <motion.span
                   className="flex items-center space-x-1 text-purple-400"
                   whileHover={{ scale: 1.1 }}
                 >
@@ -357,19 +355,19 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
           {/* Status & Controls */}
           <div className="flex flex-col items-end space-y-2 ml-3">
             {/* Status Badge */}
-            <motion.div 
+            <motion.div
               className={`px-3 py-1.5 rounded-2xl text-xs font-black ${config.text} bg-white/10 backdrop-blur-sm border ${config.border} hidden sm:block`}
-              whileHover={{ 
+              whileHover={{
                 scale: 1.05,
                 backgroundColor: 'rgba(255,255,255,0.2)'
               }}
             >
               {config.label}
             </motion.div>
-            
+
             {/* Deal Value Preview */}
             {client.deal && (
-              <motion.div 
+              <motion.div
                 className="text-xs font-bold text-emerald-400"
                 animate={{ opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 2, repeat: Infinity }}
@@ -377,7 +375,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                 💰 {parseFloat(client.deal).toLocaleString()}
               </motion.div>
             )}
-            
+
             {/* Expand Button */}
             <motion.div
               animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -393,7 +391,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
         {/* Mobile Status Bar */}
         <div className="sm:hidden absolute bottom-2 left-5 right-5">
           <div className="flex items-center justify-between">
-            <motion.div 
+            <motion.div
               className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ${config.text} bg-white/10 backdrop-blur-sm`}
               whileHover={{ scale: 1.05 }}
             >
@@ -431,8 +429,8 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                     item.action();
                   }}
                   className={`w-12 h-12 bg-gradient-to-r ${item.color} rounded-2xl flex items-center justify-center text-white shadow-lg relative overflow-hidden group`}
-                  whileHover={{ 
-                    scale: 1.15, 
+                  whileHover={{
+                    scale: 1.15,
                     rotate: 5,
                     boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
                   }}
@@ -467,7 +465,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
 
             {/* Enhanced Contact Grid */}
             <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <motion.div 
+              <motion.div
                 className="group p-4 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-2xl border border-cyan-500/20 hover:border-cyan-400/40 transition-all duration-300"
                 whileHover={{ scale: 1.02, y: -2 }}
               >
@@ -487,8 +485,8 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                   </div>
                 </div>
               </motion.div>
-              
-              <motion.div 
+
+              <motion.div
                 className="group p-4 bg-gradient-to-br from-pink-500/10 to-rose-500/10 rounded-2xl border border-pink-500/20 hover:border-pink-400/40 transition-all duration-300"
                 whileHover={{ scale: 1.02, y: -2 }}
               >
@@ -517,7 +515,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                 TIMELINE
               </h4>
               <div className="space-y-3">
-                <motion.div 
+                <motion.div
                   className="flex items-center space-x-4 p-3 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-xl border border-blue-500/20"
                   whileHover={{ x: 5 }}
                 >
@@ -527,26 +525,23 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                     <p className="text-sm text-white">{new Date(client.firstVisit).toLocaleDateString()}</p>
                   </div>
                 </motion.div>
-                
-                <motion.div 
-                  className={`flex items-center space-x-4 p-3 rounded-xl border ${
-                    isOverdue 
-                      ? 'bg-gradient-to-r from-red-500/20 to-pink-500/20 border-red-500/40' 
-                      : isUrgent 
-                        ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/40'
-                        : 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/20'
-                  }`}
+
+                <motion.div
+                  className={`flex items-center space-x-4 p-3 rounded-xl border ${isOverdue
+                    ? 'bg-gradient-to-r from-red-500/20 to-pink-500/20 border-red-500/40'
+                    : isUrgent
+                      ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/40'
+                      : 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/20'
+                    }`}
                   whileHover={{ x: 5 }}
                   animate={isOverdue || isUrgent ? { scale: [1, 1.02, 1] } : {}}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <div className={`w-3 h-3 rounded-full ${
-                    isOverdue ? 'bg-red-500 animate-bounce' : isUrgent ? 'bg-yellow-500 animate-pulse' : 'bg-purple-500'
-                  }`}></div>
+                  <div className={`w-3 h-3 rounded-full ${isOverdue ? 'bg-red-500 animate-bounce' : isUrgent ? 'bg-yellow-500 animate-pulse' : 'bg-purple-500'
+                    }`}></div>
                   <div>
-                    <p className={`text-xs font-bold ${
-                      isOverdue ? 'text-red-400' : isUrgent ? 'text-yellow-400' : 'text-purple-400'
-                    }`}>
+                    <p className={`text-xs font-bold ${isOverdue ? 'text-red-400' : isUrgent ? 'text-yellow-400' : 'text-purple-400'
+                      }`}>
                       {isOverdue ? 'OVERDUE VISIT' : isUrgent ? 'URGENT VISIT' : 'NEXT VISIT'}
                     </p>
                     <p className="text-sm text-white">{new Date(client.nextVisit).toLocaleDateString()}</p>
@@ -557,8 +552,8 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
 
             {/* Deal Value Showcase */}
             {client.deal && (
-              <motion.div 
-                variants={itemVariants} 
+              <motion.div
+                variants={itemVariants}
                 className="mt-6 p-6 bg-gradient-to-br from-emerald-500/20 via-teal-500/10 to-green-500/20 rounded-2xl border border-emerald-500/30 relative overflow-hidden"
                 whileHover={{ scale: 1.02 }}
               >
@@ -574,7 +569,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                     ease: "linear"
                   }}
                 />
-                
+
                 <div className="relative z-10 flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <motion.div
@@ -586,7 +581,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                     </motion.div>
                     <div>
                       <p className="text-xs text-emerald-400 font-black uppercase tracking-wider">Deal Value</p>
-                      <motion.p 
+                      <motion.p
                         className="text-2xl font-black bg-gradient-to-r from-emerald-400 via-teal-400 to-green-400 bg-clip-text text-transparent"
                         animate={{ scale: [1, 1.05, 1] }}
                         transition={{ duration: 2, repeat: Infinity }}
@@ -597,7 +592,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                   </div>
                   <motion.div
                     className="text-4xl"
-                    animate={{ 
+                    animate={{
                       rotate: [0, 10, -10, 0],
                       scale: [1, 1.1, 1]
                     }}
@@ -622,7 +617,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                   </motion.div>
                   <div className="min-w-0">
                     <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-2">Intelligence Notes</p>
-                    <motion.p 
+                    <motion.p
                       className="text-sm text-white/90 leading-relaxed"
                       initial={{ opacity: 0.7 }}
                       whileHover={{ opacity: 1 }}
@@ -642,7 +637,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                   onEdit(client);
                 }}
                 className="flex-1 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white py-3 px-6 rounded-2xl font-black text-sm shadow-lg relative overflow-hidden group"
-                whileHover={{ 
+                whileHover={{
                   scale: 1.05,
                   boxShadow: '0 15px 35px rgba(245, 158, 11, 0.4)'
                 }}
@@ -656,14 +651,14 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                   MODIFY
                 </span>
               </motion.button>
-              
+
               <motion.button
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete(client._id);
                 }}
                 className="flex-1 bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white py-3 px-6 rounded-2xl font-black text-sm shadow-lg relative overflow-hidden group"
-                whileHover={{ 
+                whileHover={{
                   scale: 1.05,
                   boxShadow: '0 15px 35px rgba(239, 68, 68, 0.4)'
                 }}
