@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import api from '../api';
 import CallTodayCard from '../componentes/CallTodayCard';
 import FloatingActionMenu from '../componentes/FloatingActionMenu';
+import GestureOverlay from '../componentes/GestureOverlay';
+import SmartNotifications from '../componentes/SmartNotifications';
 
 const CallToday = () => {
   const [clients, setClients] = useState([]);
@@ -155,6 +157,44 @@ const CallToday = () => {
           }}
           onViewStats={() => window.location.href = '/clients'}
         />
+
+        {/* Revolutionary Gesture System */}
+        <GestureOverlay
+          onGesture={(gesture) => {
+            switch (gesture) {
+              case 'swipe-up':
+                window.location.href = '/clients';
+                break;
+              case 'swipe-down':
+                window.location.href = '/clients';
+                break;
+              case 'swipe-left':
+                const urgentClient = clients.find(c => {
+                  const nextVisitDate = new Date(c.nextVisit);
+                  const today = new Date();
+                  return nextVisitDate < today;
+                });
+                if (urgentClient) window.open(`tel:${urgentClient.phone}`, '_self');
+                break;
+              case 'swipe-right':
+                // Mark all as completed
+                clients.forEach(client => {
+                  const tomorrow = new Date();
+                  tomorrow.setDate(tomorrow.getDate() + 7);
+                  const updatedClient = {
+                    ...client,
+                    nextVisit: tomorrow.toISOString().split('T')[0],
+                    status: 'active'
+                  };
+                  handleEdit(updatedClient);
+                });
+                break;
+            }
+          }}
+        />
+
+        {/* Revolutionary Smart Notifications */}
+        <SmartNotifications clients={clients} />
       </div>
     </div>
   )

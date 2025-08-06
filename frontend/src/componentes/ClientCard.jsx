@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion';
-import { ChevronDown, Phone, MapPin, Calendar, DollarSign, FileText, Star, Zap, Target, Lock, Skull, MessageCircle, Video, Mail, ExternalLink } from 'lucide-react';
+import { ChevronDown, Phone, MapPin, Calendar, DollarSign, FileText, Star, Zap, Target, Lock, Skull, MessageCircle, Video, Mail, ExternalLink, Sparkles, Flame, Eye } from 'lucide-react';
+import hapticFeedback from '../utils/haptics';
 
 const statusConfig = {
   started: {
@@ -81,15 +82,23 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
     const threshold = 100;
     if (info.offset.x > threshold) {
       setSwipeDirection('right');
-      // Quick call action
-      window.open(`tel:${client.phone}`, '_self');
+      hapticFeedback.success();
+      // Quick call action with visual feedback
+      setTimeout(() => {
+        window.open(`tel:${client.phone}`, '_self');
+      }, 300);
     } else if (info.offset.x < -threshold) {
       setSwipeDirection('left');
+      hapticFeedback.medium();
       // Quick edit action
-      onEdit(client);
+      setTimeout(() => {
+        onEdit(client);
+      }, 300);
+    } else {
+      hapticFeedback.light();
     }
     x.set(0);
-    setSwipeDirection(null);
+    setTimeout(() => setSwipeDirection(null), 500);
   };
 
   const cardVariants = {
@@ -242,7 +251,14 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
       {/* Revolutionary Header */}
       <motion.div 
         className={`p-5 cursor-pointer min-h-[80px] flex items-center relative ${isUrgent || isOverdue ? 'pt-8' : ''}`}
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={() => {
+          hapticFeedback.light();
+          setIsExpanded(!isExpanded);
+        }}
+        onDoubleClick={() => {
+          hapticFeedback.heavy();
+          window.open(`tel:${client.phone}`, '_self');
+        }}
         whileTap={{ scale: 0.97 }}
         whileHover={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
       >
@@ -403,10 +419,10 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
             {/* Quick Action Bar */}
             <motion.div variants={itemVariants} className="flex justify-center space-x-2 mt-4 mb-6">
               {[
-                { icon: Phone, color: 'from-green-500 to-emerald-600', action: () => window.open(`tel:${client.phone}`, '_self'), label: 'Call' },
-                { icon: MessageCircle, color: 'from-blue-500 to-cyan-600', action: () => window.open(`sms:${client.phone}`, '_self'), label: 'SMS' },
-                { icon: Mail, color: 'from-purple-500 to-pink-600', action: () => window.open(`mailto:${client.email || ''}`, '_self'), label: 'Email' },
-                { icon: ExternalLink, color: 'from-orange-500 to-red-600', action: () => window.open(`https://maps.google.com/?q=${client.place}`, '_blank'), label: 'Map' }
+                { icon: Phone, color: 'from-green-500 to-emerald-600', action: () => { hapticFeedback.success(); window.open(`tel:${client.phone}`, '_self'); }, label: 'Call', effect: 'animate-pulse' },
+                { icon: MessageCircle, color: 'from-blue-500 to-cyan-600', action: () => { hapticFeedback.medium(); window.open(`sms:${client.phone}`, '_self'); }, label: 'SMS', effect: 'animate-bounce' },
+                { icon: Mail, color: 'from-purple-500 to-pink-600', action: () => { hapticFeedback.light(); window.open(`mailto:${client.email || ''}`, '_self'); }, label: 'Email', effect: 'animate-ping' },
+                { icon: ExternalLink, color: 'from-orange-500 to-red-600', action: () => { hapticFeedback.medium(); window.open(`https://maps.google.com/?q=${client.place}`, '_blank'); }, label: 'Map', effect: 'animate-spin' }
               ].map((item, index) => (
                 <motion.button
                   key={index}
@@ -414,7 +430,7 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                     e.stopPropagation();
                     item.action();
                   }}
-                  className={`w-12 h-12 bg-gradient-to-r ${item.color} rounded-2xl flex items-center justify-center text-white shadow-lg`}
+                  className={`w-12 h-12 bg-gradient-to-r ${item.color} rounded-2xl flex items-center justify-center text-white shadow-lg relative overflow-hidden group`}
                   whileHover={{ 
                     scale: 1.15, 
                     rotate: 5,
@@ -425,7 +441,26 @@ const ClientCard = ({ client, onEdit, onDelete }) => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <item.icon size={18} />
+                  {/* Magical Sparkle Effect */}
+                  <motion.div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100"
+                    animate={{
+                      background: [
+                        'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%)',
+                        'radial-gradient(circle at 80% 50%, rgba(255,255,255,0.3) 0%, transparent 50%)',
+                        'radial-gradient(circle at 50% 20%, rgba(255,255,255,0.3) 0%, transparent 50%)',
+                        'radial-gradient(circle at 50% 80%, rgba(255,255,255,0.3) 0%, transparent 50%)'
+                      ]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                  <motion.div
+                    className={isHovered ? item.effect : ''}
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <item.icon size={18} />
+                  </motion.div>
                 </motion.button>
               ))}
             </motion.div>

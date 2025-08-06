@@ -6,6 +6,8 @@ import SearchFilterBar from '../componentes/SearchFilterBar';
 import ClientModal from '../componentes/ClientModal';
 import DeadClientsSection from '../componentes/DeadClientsSection';
 import FloatingActionMenu from '../componentes/FloatingActionMenu';
+import GestureOverlay from '../componentes/GestureOverlay';
+import SmartNotifications from '../componentes/SmartNotifications';
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
@@ -317,6 +319,32 @@ const Clients = () => {
           document.querySelector('.grid').scrollIntoView({ behavior: 'smooth' });
         }}
       />
+
+      {/* Revolutionary Gesture System */}
+      <GestureOverlay
+        onGesture={(gesture) => {
+          switch (gesture) {
+            case 'swipe-up':
+              openAddModal();
+              break;
+            case 'swipe-down':
+              document.querySelector('.grid').scrollIntoView({ behavior: 'smooth' });
+              break;
+            case 'swipe-left':
+              const randomClient = filteredClients[Math.floor(Math.random() * filteredClients.length)];
+              if (randomClient) window.open(`tel:${randomClient.phone}`, '_self');
+              break;
+            case 'swipe-right':
+              // Focus mode - collapse all cards
+              setSearchTerm('');
+              setFilterStatus('active');
+              break;
+          }
+        }}
+      />
+
+      {/* Revolutionary Smart Notifications */}
+      <SmartNotifications clients={clients} />
     </div>
   );
 };
