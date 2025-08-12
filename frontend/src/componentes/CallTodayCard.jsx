@@ -48,6 +48,17 @@ const statusConfig = {
     pulse: '',
     particles: 'from-gray-400 to-slate-500',
   },
+  dead: {
+    label: 'DECEASED',
+    icon: AlertCircle,
+    emoji: '💀',
+    bg: 'from-gray-700/30 via-gray-900/20 to-black/10',
+    border: 'border-gray-600/40',
+    text: 'text-gray-400',
+    glow: 'shadow-gray-700/40',
+    pulse: 'opacity-50',
+    particles: 'from-gray-600 to-gray-800',
+  },
 };
 
 const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {

@@ -17,7 +17,7 @@ const CallToday = () => {
         const today = new Date();
         today.setHours(0,0,0,0);
         const filtered = res.data.filter(client => {
-          if (!client.nextVisit) return false;
+          if (!client.nextVisit || client.status === 'dead') return false;
           const nextVisitDate = new Date(client.nextVisit);
           nextVisitDate.setHours(0,0,0,0);
           // Keep clients whose nextVisit is today or before today
