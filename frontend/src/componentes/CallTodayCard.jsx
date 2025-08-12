@@ -631,6 +631,7 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
                     <option value="active">⚡ Active</option>
                     <option value="onaction">🎯 On Action</option>
                     <option value="closed">🔒 Closed</option>
+                    <option value="dead">💀 Dead</option>
                   </select>
                   <input
                     name="deal"
