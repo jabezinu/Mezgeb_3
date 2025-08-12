@@ -74,11 +74,11 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
   }, [open, onClose]);
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-lg z-50 animate-fadeIn">
-      <div className="h-full flex items-center justify-center p-2 sm:p-4">
-        <div className="bg-gradient-to-br from-slate-800/90 to-purple-900/90 backdrop-blur-xl rounded-3xl p-4 sm:p-6 max-w-2xl w-full my-4 sm:my-8 shadow-2xl border border-white/20 relative max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-lg z-50 animate-fadeIn overflow-y-auto">
+      <div className="min-h-screen flex items-start justify-center p-2 sm:p-4">
+        <div className="bg-gradient-to-br from-slate-800/90 to-purple-900/90 backdrop-blur-xl rounded-3xl p-4 sm:p-6 max-w-2xl w-full my-4 sm:my-8 shadow-2xl border border-white/20 relative max-h-[90vh] flex flex-col">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl blur-3xl animate-pulse"></div>
-        <div className="relative z-10 flex flex-col h-full">
+        <div className="relative z-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-black bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
               {editingId ? '✨ Transform Client' : '🚀 Create New Client'}
@@ -104,10 +104,9 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
           )}
           <form
             onSubmit={e => { e.preventDefault(); onSubmit(); }}
-            className="flex flex-col min-h-0"
+            className="space-y-4 overflow-y-auto pr-2 flex-1"
           >
-            <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-200 mb-2">Business Name</label>
                 <input
@@ -206,19 +205,19 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
                   className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-200 mb-2">Description</label>
-                <textarea
-                  name="description"
-                  value={form.description}
-                  onChange={handleChange}
-                  placeholder="Enter additional details..."
-                  rows="2"
-                  className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm"
-                />
-              </div>
             </div>
-            <div className="flex gap-3 pt-3 pb-2 border-t border-white/10 bg-slate-900/40">
+            <div>
+              <label className="block text-sm font-medium text-gray-200 mb-2">Description</label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="Enter additional details..."
+                rows="2"
+                className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm"
+              />
+            </div>
+            <div className="flex gap-3 pt-3 pb-2">
               <button
                 type="submit"
                 className="flex-1 bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 text-white py-2 px-4 rounded-lg font-semibold hover:from-cyan-400 hover:to-pink-500 transition-all duration-300 hover:shadow-lg text-sm"
@@ -228,7 +227,7 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 bg-gray-200/20 text-gray-200 py-2 px-4 rounded-lg font-semibold hover:bg-gray-300/30 transition-all duration-200 text-sm"
+                className="flex-1 bg-gray-600/50 text-white py-2 px-4 rounded-lg font-semibold hover:bg-gray-500/50 transition-all duration-200 text-sm"
               >
                 Cancel
               </button>
