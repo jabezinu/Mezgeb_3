@@ -1,8 +1,16 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom'; // Using NavLink for active link styling
+import { NavLink, useNavigate } from 'react-router-dom'; // Using NavLink for active link styling
+import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -38,8 +46,8 @@ const Navbar = () => {
             isOpen ? 'block' : 'hidden'
           } md:block absolute md:static top-16 left-0 w-full md:w-auto bg-white md:bg-transparent shadow-md md:shadow-none`}
         >
-          <ul className="flex flex-col md:flex-row md:space-x-6 p-4 md:p-0">
-            <li>
+          <ul className="flex flex-col md:flex-row md:items-center md:space-x-2 p-4 md:p-0">
+            <li className="mb-2 md:mb-0">
               <NavLink
                 to="/"
                 className={({ isActive }) =>
@@ -47,7 +55,7 @@ const Navbar = () => {
                     isActive ? 'text-blue-600 font-semibold bg-blue-100' : ''
                   }`
                 }
-                onClick={() => setIsOpen(false)} // Close menu on link click
+                onClick={() => setIsOpen(false)}
               >
                 Home
               </NavLink>
@@ -90,6 +98,14 @@ const Navbar = () => {
               >
                 Call Today
               </NavLink>
+            </li>
+            <li className="mt-2 md:mt-0 md:ml-4">
+              <button
+                onClick={handleLogout}
+                className="w-full text-left py-2 px-4 text-red-600 hover:bg-red-50 rounded-md transition-colors border border-red-200 hover:border-red-300"
+              >
+                Logout
+              </button>
             </li>
           </ul>
         </nav>

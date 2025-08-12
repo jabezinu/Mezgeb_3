@@ -1,12 +1,17 @@
-import React from 'react'
-import { Routes, Route } from 'react-router-dom'
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Home from './pages/Home';
 import Leads from './pages/Leads';
 import Clients from './pages/Clients';
 import CallToday from './pages/CallToday';
+import Login from './pages/Login';
 import Navbar from './componentes/Navbar';
+import ProtectedRoute from './components/ProtectedRoute';
 
-const App = () => {
+const AppContent = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Background Pattern */}
@@ -14,16 +19,24 @@ const App = () => {
       
       {/* Main Content Container */}
       <div className="relative z-10">
-        <Navbar />
+        {isAuthenticated && <Navbar />}
         
         {/* Page Content with Beautiful Container */}
         <main className="container mx-auto px-4 py-8">
           <div className="backdrop-blur-sm bg-white/70 rounded-3xl shadow-xl border border-white/20 overflow-hidden">
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/lead" element={<Leads />} />
-              <Route path="/clients" element={<Clients />} />
-              <Route path="/call-today" element={<CallToday />} />
+              <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
+              
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/lead" element={<Leads />} />
+                <Route path="/clients" element={<Clients />} />
+                <Route path="/call-today" element={<CallToday />} />
+              </Route>
+              
+              {/* Redirect any unknown paths to home or login */}
+              <Route path="*" element={isAuthenticated ? <Navigate to="/" /> : <Navigate to="/login" />} />
             </Routes>
           </div>
         </main>
@@ -34,7 +47,15 @@ const App = () => {
       <div className="fixed bottom-20 right-10 w-40 h-40 bg-gradient-to-r from-pink-400/20 to-orange-400/20 rounded-full blur-xl"></div>
       <div className="fixed top-1/2 right-1/4 w-24 h-24 bg-gradient-to-r from-green-400/20 to-blue-400/20 rounded-full blur-xl"></div>
     </div>
-  )
-}
+  );
+};
 
-export default App
+const App = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+};
+
+export default App;
