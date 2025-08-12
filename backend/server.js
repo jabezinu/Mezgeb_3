@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import clientRoutes from './routes/clientRoutes.js';
 import leadRoutes from './routes/leadRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 dotenv.config();
 
@@ -13,6 +14,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Authentication routes
+app.use('/api/auth', authRoutes);
+
+// Protected routes
 app.use('/api/clients', clientRoutes);
 app.use('/api/leads', leadRoutes);
 
