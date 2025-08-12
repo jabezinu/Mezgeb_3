@@ -36,19 +36,27 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (phoneNumber, password) => {
     try {
-      const data = await authApi.login({ phoneNumber, password });
-      const { token, user } = data;
+      console.log('Attempting login with:', { phoneNumber });
+      const result = await authApi.login({ phoneNumber, password });
       
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      setUser(user);
-      return { success: true };
+      if (result.success) {
+        console.log('Login successful, user:', result.user);
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('user', JSON.stringify(result.user));
+        setUser(result.user);
+        return { success: true };
+      } else {
+        console.error('Login failed:', result.message);
+        return { 
+          success: false, 
+          message: result.message || 'Login failed. Please try again.' 
+        };
+      }
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Login error:', error);
       return { 
         success: false, 
-        message: error.response?.data?.message || 'Login failed. Please try again.' 
+        message: error.message || 'An error occurred during login.' 
       };
     }
   };

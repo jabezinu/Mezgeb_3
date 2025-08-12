@@ -37,8 +37,25 @@ api.interceptors.response.use(
 // Auth API functions
 export const authApi = {
   login: async (credentials) => {
-    const response = await api.post('/auth/login', credentials);
-    return response.data;
+    try {
+      console.log('Sending login request with:', credentials);
+      const response = await api.post('/auth/login', credentials);
+      console.log('Login response:', response.data);
+      return {
+        success: true,
+        token: response.data.token,
+        user: {
+          _id: response.data._id,
+          phoneNumber: response.data.phoneNumber
+        }
+      };
+    } catch (error) {
+      console.error('Login API error:', error.response?.data || error.message);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Login failed. Please try again.'
+      };
+    }
   },
   getProfile: async () => {
     const response = await api.get('/auth/profile');

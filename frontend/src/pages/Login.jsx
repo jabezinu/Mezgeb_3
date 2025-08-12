@@ -3,10 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
-  const [phoneNumber, setPhoneNumber] = useState('0911355288');
-  const [password, setPassword] = useState('yabjab');
+  const [formData, setFormData] = useState({
+    phoneNumber: '',
+    password: ''
+  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const { phoneNumber, password } = formData;
+  
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -17,6 +29,10 @@ export default function Login() {
     try {
       setError('');
       setLoading(true);
+      
+      if (!phoneNumber || !password) {
+        throw new Error('Please enter both phone number and password');
+      }
       
       const result = await login(phoneNumber, password);
       
@@ -56,12 +72,12 @@ export default function Login() {
               <input
                 id="phoneNumber"
                 name="phoneNumber"
-                type="tel"
+                type="text"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Phone Number"
+                placeholder="Phone number"
                 value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
+                onChange={handleChange}
               />
             </div>
             <div>
@@ -75,7 +91,7 @@ export default function Login() {
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handleChange}
               />
             </div>
           </div>
