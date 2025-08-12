@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom animations for modal */
+/* Simple fade animation for modal */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -12,80 +12,33 @@
   }
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out;
 }
 
-.animate-slideIn {
-  animation: slideIn 0.4s ease-out;
+/* Ensure proper scrolling */
+html, body {
+  height: 100%;
+  overflow-x: hidden;
 }
 
-.animate-slideUp {
-  animation: slideUp 0.3s ease-out;
+body {
+  overflow-y: auto;
 }
 
-/* Custom scrollbar for modal content */
-.modal-scroll::-webkit-scrollbar {
-  width: 6px;
+/* Simple modal backdrop */
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
-.modal-scroll::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-.modal-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 3px;
-}
-
-.modal-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-/* Smooth transitions for form elements */
+/* Clean form inputs */
 .form-input {
-  transition: all 0.2s ease-in-out;
+  transition: border-color 0.2s ease-in-out;
 }
 
 .form-input:focus {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(34, 211, 238, 0.3);
-}
-
-/* Modal backdrop blur effect */
-.modal-backdrop {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-/* Section hover effects */
-.section-hover {
-  transition: all 0.2s ease-in-out;
-}
-
-.section-hover:hover {
-  transform: translateX(2px);
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
