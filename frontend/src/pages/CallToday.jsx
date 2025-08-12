@@ -77,9 +77,16 @@ const CallToday = () => {
 
   const handleEdit = (client) => {
     setForm({
-      ...client,
+      businessName: client.businessName || '',
+      managerName: client.managerName || '',
+      phone: client.phone || '',
+      firstVisit: client.firstVisit || '',
+      nextVisit: client.nextVisit || '',
+      place: client.place || '',
+      status: client.status || 'started',
+      deal: client.deal || '',
+      description: client.description || '',
       phoneNumbers: client.phone ? [client.phone] : [''],
-      phone: client.phone || ''
     });
     setEditingClient(client);
     setShowModal(true);
