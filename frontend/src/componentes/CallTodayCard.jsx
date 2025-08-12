@@ -65,15 +65,22 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [callStatus, setCallStatus] = useState('ready'); // ready, calling, completed
+  const [callStatus, setCallStatus] = useState('ready'); // ready, calling, completed, selecting
+  const [selectedPhoneIndex, setSelectedPhoneIndex] = useState(0);
   const [editData, setEditData] = useState({ ...client });
   const cardRef = useRef(null);
   const x = useMotionValue(0);
   const rotateY = useTransform(x, [-200, 0, 200], [-15, 0, 15]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 0.8, 1, 0.8, 0.5]);
-  
+
+  // Handle backward compatibility with old phone field
+  const phoneNumbers = client.phoneNumbers || (client.phone ? [client.phone] : []);
+  const primaryPhoneIndex = client.primaryPhoneIndex !== undefined ? 
+    client.primaryPhoneIndex : 
+    (phoneNumbers.length > 0 ? 0 : -1);
+
   const config = statusConfig[client.status] || statusConfig.closed;
-  
+
   // Calculate urgency level
   const daysOverdue = Math.abs(Math.ceil((new Date(client.nextVisit) - new Date()) / (1000 * 60 * 60 * 24)));
   const urgencyLevel = isMissed ? (daysOverdue > 7 ? 'critical' : daysOverdue > 3 ? 'high' : 'medium') : 'normal';
@@ -81,8 +88,12 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
   const handlePanEnd = (event, info) => {
     const threshold = 120;
     if (info.offset.x > threshold) {
-      // Swipe right - Instant call
-      handleQuickCall();
+      // Swipe right - Show phone number picker or call directly
+      if (phoneNumbers.length > 1) {
+        setCallStatus('selecting');
+      } else {
+        handleQuickCall();
+      }
     } else if (info.offset.x < -threshold) {
       // Swipe left - Mark as completed
       handleMarkCompleted();
@@ -90,10 +101,22 @@ const CallTodayCard = ({ client, onEdit, onDelete, isMissed }) => {
     x.set(0);
   };
 
-  const handleQuickCall = () => {
+  const handleQuickCall = (phoneIndex = null) => {
+    const phoneIndexToUse = phoneIndex !== null ? phoneIndex : primaryPhoneIndex;
+
+    if (phoneNumbers.length === 0) {
+      console.error('No phone numbers available');
+      return;
+    }
+
+    if (phoneIndexToUse === -1 || !phoneNumbers[phoneIndexToUse]) {
+      console.error('Invalid phone number index');
+      return;
+    }
+
     setCallStatus('calling');
     hapticFeedback.success();
-    window.open(`tel:${client.phone}`, '_self');
+    window.open(`tel:${phoneNumbers[phoneIndexToUse]}`, '_self');
     setTimeout(() => {
       setCallStatus('completed');
       hapticFeedback.notification();

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion';
 import api from '../api';
 import CallTodayCard from '../componentes/CallTodayCard';
+import ClientModal from '../componentes/ClientModal';
 import FloatingActionMenu from '../componentes/FloatingActionMenu';
 import GestureOverlay from '../componentes/GestureOverlay';
 import SmartNotifications from '../componentes/SmartNotifications';
@@ -9,6 +10,19 @@ import SmartNotifications from '../componentes/SmartNotifications';
 const CallToday = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
+  const [form, setForm] = useState({
+    businessName: '',
+    managerName: '',
+    phone: '',
+    firstVisit: '',
+    nextVisit: '',
+    place: '',
+    status: 'started',
+    deal: '',
+    description: '',
+  });
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -46,23 +60,57 @@ const CallToday = () => {
 
 
 
-  const handleEdit = async (updatedClient) => {
+  const handleEdit = (client) => {
+    setForm({
+      businessName: client.businessName || '',
+      managerName: client.managerName || '',
+      phone: client.phone || '',
+      firstVisit: client.firstVisit || '',
+      nextVisit: client.nextVisit || '',
+      place: client.place || '',
+      status: client.status || 'started',
+      deal: client.deal || '',
+      description: client.description || '',
+    });
+    setEditingClient(client);
+    setShowModal(true);
+  };
+
+  const handleSubmit = async () => {
     try {
-      const res = await api.put(`/clients/${updatedClient._id}`, updatedClient);
+      const res = await api.put(`/clients/${editingClient._id}`, form);
       // Check if the updated nextVisit is today or before today
-      const today = new Date()
-      today.setHours(0,0,0,0)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
       const updatedNextVisit = new Date(res.data.nextVisit);
-      updatedNextVisit.setHours(0,0,0,0);
+      updatedNextVisit.setHours(0, 0, 0, 0);
+      
       if (updatedNextVisit <= today) {
-        setClients(clients.map(c => c._id === updatedClient._id ? res.data : c));
+        setClients(clients.map(c => c._id === editingClient._id ? res.data : c));
       } else {
-        setClients(clients.filter(c => c._id !== updatedClient._id));
+        setClients(clients.filter(c => c._id !== editingClient._id));
       }
+      setShowModal(false);
     } catch (error) {
       console.error('Error updating client:', error);
       alert('Failed to update client.');
     }
+  };
+
+  const resetForm = () => {
+    setForm({
+      businessName: '',
+      managerName: '',
+      phone: '',
+      firstVisit: '',
+      nextVisit: '',
+      place: '',
+      status: 'started',
+      deal: '',
+      description: '',
+    });
+    setEditingClient(null);
+    setShowModal(false);
   };
 
   return (
@@ -197,6 +245,15 @@ const CallToday = () => {
         {/* Revolutionary Smart Notifications */}
         <SmartNotifications clients={clients} />
       </div>
+
+      <ClientModal
+        open={showModal}
+        onClose={resetForm}
+        onSubmit={handleSubmit}
+        form={form}
+        setForm={setForm}
+        editingId={editingClient?._id}
+      />
     </div>
   )
 }
