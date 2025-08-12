@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import LocationInput from './LocationInput';
-import { Plus, X, Phone as PhoneIcon, User } from 'lucide-react';
+import { Plus, X, User } from 'lucide-react';
 
 const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error }) => {
   if (!open) return null;
-
-  // Debug: Log the current form status
-  console.log('ClientModal - Current form status:', form.status);
-  console.log('ClientModal - All form data:', form);
-  console.log('ClientModal - Modal is open:', open);
 
   const [isContactsApiSupported, setIsContactsApiSupported] = React.useState(false);
 
@@ -30,7 +25,6 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
       ...prev,
       phoneNumbers,
       primaryPhoneIndex,
-      // Keep backward compatibility with single phone field
       phone: phoneNumbers[primaryPhoneIndex] || ''
     }));
   }, [phoneNumbers, primaryPhoneIndex]);
@@ -51,12 +45,11 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
   };
 
   const removePhoneNumber = (index) => {
-    if (phoneNumbers.length <= 1) return; // Keep at least one phone number
+    if (phoneNumbers.length <= 1) return;
     
     const newPhoneNumbers = phoneNumbers.filter((_, i) => i !== index);
     setPhoneNumbers(newPhoneNumbers);
     
-    // Adjust primary index if needed
     if (primaryPhoneIndex === index) {
       setPrimaryPhoneIndex(0);
     } else if (primaryPhoneIndex > index) {
@@ -72,21 +65,17 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
         const contactName = contact.name?.[0] || form.managerName;
         const contactNumbers = contact.tel || [];
         
-        // Update manager name if we have a contact name
         if (contactName) {
           setForm(prev => ({ ...prev, managerName: contactName }));
         }
         
-        // Add all contact numbers
         if (contactNumbers.length > 0) {
-          // Filter out any numbers that already exist
           const newNumbers = contactNumbers.filter(
             num => !phoneNumbers.includes(num)
           );
           
           if (newNumbers.length > 0) {
             setPhoneNumbers([...phoneNumbers, ...newNumbers]);
-            // Set the first new number as primary
             setPrimaryPhoneIndex(phoneNumbers.length);
           }
         }
@@ -96,24 +85,14 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
     }
   };
 
-  // Prevent body scroll when modal is open and handle focus
+  // Prevent body scroll when modal is open
   React.useEffect(() => {
     if (open) {
-      // Prevent body scroll
       document.body.style.overflow = 'hidden';
-      
-      // Focus the first input when modal opens
-      setTimeout(() => {
-        const firstInput = document.querySelector('input[name="businessName"]');
-        if (firstInput) {
-          firstInput.focus();
-        }
-      }, 100);
     } else {
       document.body.style.overflow = 'unset';
     }
     
-    // Cleanup on unmount
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -137,262 +116,236 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
   }, [open, onClose]);
 
   return (
-    <div className="fixed inset-0 bg-black/70 modal-backdrop z-50 animate-fadeIn">
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="bg-gradient-to-br from-slate-800/95 to-purple-900/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 relative w-full max-w-4xl max-h-[95vh] flex flex-col overflow-hidden animate-slideIn">
-          {/* Animated background */}
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl blur-3xl animate-pulse"></div>
-          
-          {/* Modal Header - Fixed */}
-          <div className="relative z-10 flex-shrink-0 p-6 pb-4 border-b border-white/10">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-black bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                {editingId ? '✨ Transform Client' : '🚀 Create New Client'}
-              </h2>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-white transition-colors duration-300 hover:rotate-90 transform p-2 rounded-full hover:bg-white/10"
-              >
-                <X className="w-6 h-6" />
-              </button>
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {editingId ? 'Edit Client' : 'Add New Client'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 p-1"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded p-3 mb-4">
+              <p className="text-red-600 text-sm">{error}</p>
             </div>
-          </div>
+          )}
+          
+          <form onSubmit={e => { e.preventDefault(); onSubmit(); }} className="space-y-4">
+            {/* Business Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Business Name *
+              </label>
+              <input
+                name="businessName"
+                value={form.businessName}
+                onChange={handleChange}
+                required
+                placeholder="Enter business name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
 
-          {/* Modal Content - Scrollable */}
-          <div className="relative z-10 flex-1 overflow-y-auto p-6 pt-4 modal-scroll">
-            {error && (
-              <div className="bg-red-500/20 border border-red-500/30 rounded-2xl p-4 mb-6 backdrop-blur-sm animate-slideUp">
-                <p className="text-red-400 font-medium flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {error}
-                </p>
-              </div>
-            )}
-            
-            <form
-              onSubmit={e => { e.preventDefault(); onSubmit(); }}
-              className="space-y-6"
-            >
-              {/* Basic Information Section */}
-              <div className="space-y-4 section-hover">
-                <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2">
-                  📋 Basic Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">Business Name</label>
-                    <input
-                      name="businessName"
-                      value={form.businessName}
-                      onChange={handleChange}
-                      required
-                      placeholder="Enter business name"
-                      className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm form-input"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">Manager Name</label>
-                    <input
-                      name="managerName"
-                      value={form.managerName}
-                      onChange={handleChange}
-                      required
-                      placeholder="Enter manager name"
-                      className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm form-input"
-                    />
-                  </div>
-                </div>
-              </div>
+            {/* Manager Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Manager Name *
+              </label>
+              <input
+                name="managerName"
+                value={form.managerName}
+                onChange={handleChange}
+                required
+                placeholder="Enter manager name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
 
-              {/* Contact Information Section */}
-              <div className="space-y-4 section-hover">
-                <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2">
-                  📞 Contact Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-200">Phone Numbers</label>
-                      <span className="text-xs text-gray-400">Mark primary with ★</span>
-                    </div>
-                    <div className="space-y-2">
-                      {phoneNumbers.map((phone, index) => (
-                        <div key={index} className="flex gap-2 items-center">
-                          <div className="relative flex-1">
-                            <input
-                              type="tel"
-                              value={phone}
-                              onChange={(e) => handlePhoneNumberChange(index, e.target.value)}
-                              placeholder="Enter phone number"
-                              className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm form-input"
-                              required={index === 0}
-                            />
-                            {phoneNumbers.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => setPrimaryPhoneIndex(index)}
-                                className={`absolute left-2 top-1/2 transform -translate-y-1/2 text-lg ${index === primaryPhoneIndex ? 'text-yellow-400' : 'text-gray-400 hover:text-yellow-300'}`}
-                                title={index === primaryPhoneIndex ? 'Primary number' : 'Set as primary'}
-                              >
-                                {index === primaryPhoneIndex ? '★' : '☆'}
-                              </button>
-                            )}
-                          </div>
-                          {phoneNumbers.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removePhoneNumber(index)}
-                              className="p-2 text-red-400 hover:text-red-300 rounded-full hover:bg-red-500/20 transition-colors"
-                              title="Remove number"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                      <div className="flex justify-between mt-2">
+            {/* Phone Numbers */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Phone Numbers *
+              </label>
+              <div className="space-y-2">
+                {phoneNumbers.map((phone, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <div className="relative flex-1">
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => handlePhoneNumberChange(index, e.target.value)}
+                        placeholder="Enter phone number"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required={index === 0}
+                      />
+                      {phoneNumbers.length > 1 && (
                         <button
                           type="button"
-                          onClick={addPhoneNumber}
-                          className="flex items-center text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+                          onClick={() => setPrimaryPhoneIndex(index)}
+                          className={`absolute left-2 top-1/2 transform -translate-y-1/2 text-lg ${index === primaryPhoneIndex ? 'text-yellow-500' : 'text-gray-400'}`}
+                          title={index === primaryPhoneIndex ? 'Primary number' : 'Set as primary'}
                         >
-                          <Plus className="w-4 h-4 mr-1" />
-                          Add another number
+                          {index === primaryPhoneIndex ? '★' : '☆'}
                         </button>
-                        {isContactsApiSupported && (
-                          <button
-                            type="button"
-                            onClick={handlePickContact}
-                            className="flex items-center text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                          >
-                            <User className="w-4 h-4 mr-1" />
-                            Import from contacts
-                          </button>
-                        )}
-                      </div>
+                      )}
                     </div>
+                    {phoneNumbers.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removePhoneNumber(index)}
+                        className="p-2 text-red-500 hover:text-red-700"
+                        title="Remove number"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">Place</label>
-                    <LocationInput
-                      name="place"
-                      value={form.place}
-                      onChange={handleChange}
-                      required
-                      placeholder="Enter location or use current location"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Visit Information Section */}
-              <div className="space-y-4 section-hover">
-                <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2">
-                  📅 Visit Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">First Visit</label>
-                    <input
-                      name="firstVisit"
-                      value={form.firstVisit}
-                      onChange={handleChange}
-                      type="date"
-                      required
-                      className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm form-input"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">Next Visit</label>
-                    <input
-                      name="nextVisit"
-                      value={form.nextVisit}
-                      onChange={handleChange}
-                      type="date"
-                      required
-                      className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm form-input"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Business Information Section */}
-              <div className="space-y-4 section-hover">
-                <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2">
-                  💼 Business Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">Status</label>
-                    <select
-                      name="status"
-                      value={form.status}
-                      onChange={handleChange}
-                      onClick={() => console.log('Status dropdown clicked, current value:', form.status)}
-                      className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm form-input"
+                ))}
+                <div className="flex justify-between">
+                  <button
+                    type="button"
+                    onClick={addPhoneNumber}
+                    className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add number
+                  </button>
+                  {isContactsApiSupported && (
+                    <button
+                      type="button"
+                      onClick={handlePickContact}
+                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
                     >
-                      <option value="started" className="bg-slate-900 text-white">🚀 Started</option>
-                      <option value="active" className="bg-slate-900 text-white">✅ Active</option>
-                      <option value="onaction" className="bg-slate-900 text-white">⚡ On Action</option>
-                      <option value="closed" className="bg-slate-900 text-white">🔒 Closed</option>
-                      <option value="dead" className="bg-slate-900 text-white">💀 Dead</option>
-                      <option value="test" className="bg-slate-900 text-white">🧪 Test Option</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">Deal Value ($)</label>
-                    <input
-                      name="deal"
-                      value={form.deal}
-                      onChange={handleChange}
-                      placeholder="Enter deal amount"
-                      type="number"
-                      className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm form-input"
-                    />
-                  </div>
+                      <User className="w-4 h-4 mr-1" />
+                      Import contacts
+                    </button>
+                  )}
                 </div>
               </div>
-
-              {/* Additional Information Section */}
-              <div className="space-y-4 section-hover">
-                <h3 className="text-lg font-semibold text-white/90 border-b border-white/10 pb-2">
-                  📝 Additional Information
-                </h3>
-                <div>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">Description</label>
-                  <textarea
-                    name="description"
-                    value={form.description}
-                    onChange={handleChange}
-                    placeholder="Enter additional details about the client, business, or any important notes..."
-                    rows="4"
-                    className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm resize-none form-input"
-                  />
-                </div>
-              </div>
-            </form>
-          </div>
-
-          {/* Modal Footer - Fixed */}
-          <div className="relative z-10 flex-shrink-0 p-6 pt-4 border-t border-white/10 bg-gradient-to-r from-slate-800/50 to-purple-900/50">
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                onClick={onSubmit}
-                className="flex-1 bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-cyan-400 hover:to-pink-500 transition-all duration-300 hover:shadow-lg text-sm flex items-center justify-center"
-              >
-                {editingId ? '✨ Update Client' : '🚀 Add Client'}
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 bg-gray-600/50 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-500/50 transition-all duration-200 text-sm"
-              >
-                Cancel
-              </button>
             </div>
+
+            {/* Place */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Location *
+              </label>
+              <LocationInput
+                name="place"
+                value={form.place}
+                onChange={handleChange}
+                required
+                placeholder="Enter location"
+              />
+            </div>
+
+            {/* First Visit */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                First Visit *
+              </label>
+              <input
+                name="firstVisit"
+                value={form.firstVisit}
+                onChange={handleChange}
+                type="date"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            {/* Next Visit */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Next Visit *
+              </label>
+              <input
+                name="nextVisit"
+                value={form.nextVisit}
+                onChange={handleChange}
+                type="date"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            {/* Status */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Status *
+              </label>
+              <select
+                name="status"
+                value={form.status}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="started">🚀 Started</option>
+                <option value="active">✅ Active</option>
+                <option value="onaction">⚡ On Action</option>
+                <option value="closed">🔒 Closed</option>
+                <option value="dead">💀 Dead</option>
+                <option value="test">🧪 Test</option>
+              </select>
+            </div>
+
+            {/* Deal Value */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Deal Value ($)
+              </label>
+              <input
+                name="deal"
+                value={form.deal}
+                onChange={handleChange}
+                placeholder="Enter deal amount"
+                type="number"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="Enter additional details..."
+                rows="3"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              />
+            </div>
+          </form>
+        </div>
+
+        {/* Footer - Always visible */}
+        <div className="p-4 border-t bg-gray-50">
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              onClick={onSubmit}
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium"
+            >
+              {editingId ? 'Update Client' : 'Add Client'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors font-medium"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       </div>
