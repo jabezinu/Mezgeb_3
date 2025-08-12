@@ -5,6 +5,9 @@ import { Plus, X, Phone as PhoneIcon, User } from 'lucide-react';
 const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error }) => {
   if (!open) return null;
 
+  // Debug: Log the current form status
+  console.log('ClientModal - Current form status:', form.status);
+
   const [isContactsApiSupported, setIsContactsApiSupported] = React.useState(false);
 
   React.useEffect(() => {
@@ -134,7 +137,7 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-lg z-50 animate-fadeIn overflow-y-auto">
       <div className="min-h-screen flex items-start justify-center p-2 sm:p-4">
-        <div className="bg-gradient-to-br from-slate-800/90 to-purple-900/90 backdrop-blur-xl rounded-3xl p-4 sm:p-6 max-w-2xl w-full my-4 sm:my-8 shadow-2xl border border-white/20 relative max-h-[90vh] flex flex-col">
+        <div className="bg-gradient-to-br from-slate-800/90 to-purple-900/90 backdrop-blur-xl rounded-3xl p-4 sm:p-6 max-w-2xl w-full my-4 sm:my-8 shadow-2xl border border-white/20 relative max-h-[90vh] flex flex-col" style={{ zIndex: 1001 }}>
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl blur-3xl animate-pulse"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-6">
@@ -163,6 +166,7 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
           <form
             onSubmit={e => { e.preventDefault(); onSubmit(); }}
             className="space-y-4 overflow-y-auto pr-2 flex-1"
+            style={{ position: 'relative' }}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -281,19 +285,22 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
                   className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm"
                 />
               </div>
-              <div>
+              <div style={{ position: 'relative', zIndex: 1000 }}>
                 <label className="block text-sm font-medium text-gray-200 mb-2">Status</label>
                 <select
                   name="status"
                   value={form.status}
                   onChange={handleChange}
+                  onClick={() => console.log('Status dropdown clicked, current value:', form.status)}
                   className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm"
+                  style={{ zIndex: 1000, position: 'relative' }}
                 >
-                  <option value="started">🚀 Started</option>
-                  <option value="active">✅ Active</option>
-                  <option value="onaction">⚡ On Action</option>
-                  <option value="closed">🔒 Closed</option>
-                  <option value="dead">💀 Dead</option>
+                  <option value="started" className="bg-slate-900 text-white">🚀 Started</option>
+                  <option value="active" className="bg-slate-900 text-white">✅ Active</option>
+                  <option value="onaction" className="bg-slate-900 text-white">⚡ On Action</option>
+                  <option value="closed" className="bg-slate-900 text-white">🔒 Closed</option>
+                  <option value="dead" className="bg-slate-900 text-white">💀 Dead</option>
+                  <option value="test" className="bg-slate-900 text-white">🧪 Test Option</option>
                 </select>
               </div>
               <div>

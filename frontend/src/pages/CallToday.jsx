@@ -76,6 +76,8 @@ const CallToday = () => {
 
 
   const handleEdit = (client) => {
+    console.log('Editing client:', client);
+    console.log('Client status:', client.status);
     setForm({
       businessName: client.businessName || '',
       managerName: client.managerName || '',
