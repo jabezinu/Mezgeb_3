@@ -30,21 +30,35 @@ const CallToday = () => {
         const res = await api.get('/clients');
         const today = new Date();
         today.setHours(0,0,0,0);
+        
         const filtered = res.data.filter(client => {
-          if (!client.nextVisit || client.status === 'dead') return false;
+          // Skip clients with status 'dead' or no nextVisit date
+          if (client.status === 'dead' || !client.nextVisit) return false;
+          
+          // Check if nextVisit is today or in the past
           const nextVisitDate = new Date(client.nextVisit);
           nextVisitDate.setHours(0,0,0,0);
-          // Keep clients whose nextVisit is today or before today
           return nextVisitDate <= today;
         });
+        
+        // Sort by nextVisit date (soonest first)
+        filtered.sort((a, b) => new Date(a.nextVisit) - new Date(b.nextVisit));
+        
         setClients(filtered);
-      } catch {
+      } catch (error) {
+        console.error('Error fetching clients:', error);
         setClients([]);
       } finally {
         setLoading(false);
       }
     };
+    
     fetchClients();
+    
+    // Refresh the list every 5 minutes
+    const interval = setInterval(fetchClients, 5 * 60 * 1000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const handleDelete = async (id) => {
@@ -62,34 +76,32 @@ const CallToday = () => {
 
   const handleEdit = (client) => {
     setForm({
-      businessName: client.businessName || '',
-      managerName: client.managerName || '',
-      phone: client.phone || '',
-      firstVisit: client.firstVisit || '',
-      nextVisit: client.nextVisit || '',
-      place: client.place || '',
-      status: client.status || 'started',
-      deal: client.deal || '',
-      description: client.description || '',
+      ...client,
+      phoneNumbers: client.phone ? [client.phone] : [''],
+      phone: client.phone || ''
     });
     setEditingClient(client);
     setShowModal(true);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (formData) => {
     try {
-      const res = await api.put(`/clients/${editingClient._id}`, form);
+      const res = await api.put(`/clients/${editingClient._id}`, formData);
+      const updatedClient = res.data;
+      
       // Check if the updated nextVisit is today or before today
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const updatedNextVisit = new Date(res.data.nextVisit);
+      const updatedNextVisit = new Date(updatedClient.nextVisit);
       updatedNextVisit.setHours(0, 0, 0, 0);
       
-      if (updatedNextVisit <= today) {
-        setClients(clients.map(c => c._id === editingClient._id ? res.data : c));
+      // Update the clients list
+      if (updatedNextVisit <= today && updatedClient.status !== 'dead') {
+        setClients(clients.map(c => c._id === editingClient._id ? updatedClient : c));
       } else {
         setClients(clients.filter(c => c._id !== editingClient._id));
       }
+      
       setShowModal(false);
     } catch (error) {
       console.error('Error updating client:', error);
@@ -108,6 +120,7 @@ const CallToday = () => {
       status: 'started',
       deal: '',
       description: '',
+      phoneNumbers: ['']
     });
     setEditingClient(null);
     setShowModal(false);
