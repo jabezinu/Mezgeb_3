@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import LocationInput from './LocationInput';
+import { Plus, X, Phone as PhoneIcon, User } from 'lucide-react';
 
 const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error }) => {
   if (!open) return null;
@@ -12,9 +13,50 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
     }
   }, []);
 
+  // Initialize phone numbers from form data or empty array
+  const [phoneNumbers, setPhoneNumbers] = useState(
+    form.phoneNumbers || (form.phone ? [form.phone] : [''])
+  );
+  const [primaryPhoneIndex, setPrimaryPhoneIndex] = useState(form.primaryPhoneIndex || 0);
+
+  // Update form data when phone numbers change
+  useEffect(() => {
+    setForm(prev => ({
+      ...prev,
+      phoneNumbers,
+      primaryPhoneIndex,
+      // Keep backward compatibility with single phone field
+      phone: phoneNumbers[primaryPhoneIndex] || ''
+    }));
+  }, [phoneNumbers, primaryPhoneIndex]);
+
   const handleChange = e => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handlePhoneNumberChange = (index, value) => {
+    const newPhoneNumbers = [...phoneNumbers];
+    newPhoneNumbers[index] = value;
+    setPhoneNumbers(newPhoneNumbers);
+  };
+
+  const addPhoneNumber = () => {
+    setPhoneNumbers([...phoneNumbers, '']);
+  };
+
+  const removePhoneNumber = (index) => {
+    if (phoneNumbers.length <= 1) return; // Keep at least one phone number
+    
+    const newPhoneNumbers = phoneNumbers.filter((_, i) => i !== index);
+    setPhoneNumbers(newPhoneNumbers);
+    
+    // Adjust primary index if needed
+    if (primaryPhoneIndex === index) {
+      setPrimaryPhoneIndex(0);
+    } else if (primaryPhoneIndex > index) {
+      setPrimaryPhoneIndex(primaryPhoneIndex - 1);
+    }
   };
 
   const handlePickContact = async () => {
@@ -22,11 +64,27 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
       const contacts = await navigator.contacts.select(['name', 'tel'], { multiple: false });
       if (contacts.length > 0) {
         const contact = contacts[0];
-        setForm(prev => ({
-          ...prev,
-          managerName: contact.name[0] || prev.managerName,
-          phone: contact.tel[0] || prev.phone,
-        }));
+        const contactName = contact.name?.[0] || form.managerName;
+        const contactNumbers = contact.tel || [];
+        
+        // Update manager name if we have a contact name
+        if (contactName) {
+          setForm(prev => ({ ...prev, managerName: contactName }));
+        }
+        
+        // Add all contact numbers
+        if (contactNumbers.length > 0) {
+          // Filter out any numbers that already exist
+          const newNumbers = contactNumbers.filter(
+            num => !phoneNumbers.includes(num)
+          );
+          
+          if (newNumbers.length > 0) {
+            setPhoneNumbers([...phoneNumbers, ...newNumbers]);
+            // Set the first new number as primary
+            setPrimaryPhoneIndex(phoneNumbers.length);
+          }
+        }
       }
     } catch (ex) {
       console.error('Error selecting contact.', ex);
@@ -120,32 +178,76 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-200 mb-2">Manager Name</label>
-                <div className="flex gap-2">
-                  <input
-                    name="managerName"
-                    value={form.managerName}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter manager name"
-                    className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm"
-                  />
-                  {isContactsApiSupported && (
-                    <button type="button" onClick={handlePickContact} className="px-3 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-400 transition-colors">
-                      👥
-                    </button>
-                  )}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-200 mb-2">Phone</label>
                 <input
-                  name="phone"
-                  value={form.phone}
+                  name="managerName"
+                  value={form.managerName}
                   onChange={handleChange}
                   required
-                  placeholder="Enter phone number"
+                  placeholder="Enter manager name"
                   className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm"
                 />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-200">Phone Numbers</label>
+                  <span className="text-xs text-gray-400">Mark primary with ★</span>
+                </div>
+                <div className="space-y-2">
+                  {phoneNumbers.map((phone, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <div className="relative flex-1">
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => handlePhoneNumberChange(index, e.target.value)}
+                          placeholder="Enter phone number"
+                          className="w-full px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm"
+                          required={index === 0}
+                        />
+                        {phoneNumbers.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setPrimaryPhoneIndex(index)}
+                            className={`absolute left-2 top-1/2 transform -translate-y-1/2 text-lg ${index === primaryPhoneIndex ? 'text-yellow-400' : 'text-gray-400 hover:text-yellow-300'}`}
+                            title={index === primaryPhoneIndex ? 'Primary number' : 'Set as primary'}
+                          >
+                            {index === primaryPhoneIndex ? '★' : '☆'}
+                          </button>
+                        )}
+                      </div>
+                      {phoneNumbers.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removePhoneNumber(index)}
+                          className="p-2 text-red-400 hover:text-red-300 rounded-full hover:bg-red-500/20 transition-colors"
+                          title="Remove number"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <div className="flex justify-between mt-2">
+                    <button
+                      type="button"
+                      onClick={addPhoneNumber}
+                      className="flex items-center text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add another number
+                    </button>
+                    {isContactsApiSupported && (
+                      <button
+                        type="button"
+                        onClick={handlePickContact}
+                        className="flex items-center text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        <User className="w-4 h-4 mr-1" />
+                        Import from contacts
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-200 mb-2">Place</label>
