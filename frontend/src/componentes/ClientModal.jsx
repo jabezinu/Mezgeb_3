@@ -7,6 +7,8 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
 
   // Debug: Log the current form status
   console.log('ClientModal - Current form status:', form.status);
+  console.log('ClientModal - All form data:', form);
+  console.log('ClientModal - Modal is open:', open);
 
   const [isContactsApiSupported, setIsContactsApiSupported] = React.useState(false);
 
@@ -299,7 +301,7 @@ const ClientModal = ({ open, onClose, onSubmit, form, setForm, editingId, error 
                   <option value="active" className="bg-slate-900 text-white">✅ Active</option>
                   <option value="onaction" className="bg-slate-900 text-white">⚡ On Action</option>
                   <option value="closed" className="bg-slate-900 text-white">🔒 Closed</option>
-                  <option value="dead" className="bg-slate-900 text-white">💀 Dead</option>
+                  <option value="dead" className="bg-slate-900 text-white" style={{ backgroundColor: 'red', color: 'white' }}>💀 Dead (HIGHLIGHTED)</option>
                   <option value="test" className="bg-slate-900 text-white">🧪 Test Option</option>
                 </select>
               </div>
