@@ -22,6 +22,7 @@ const CallToday = () => {
     status: 'started',
     deal: '',
     description: '',
+    phoneNumbers: ['']
   });
 
   useEffect(() => {
