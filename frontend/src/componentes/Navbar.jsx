@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom'; // Using NavLink for active link styling
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
@@ -16,46 +16,104 @@ const Navbar = () => {
     setIsOpen(!isOpen);
   };
 
+  const navStyle = {
+    backgroundColor: '#f5f5f5',
+    borderBottom: '1px solid #ddd',
+    padding: '10px 20px'
+  };
+
+  const containerStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    maxWidth: '1200px',
+    margin: '0 auto'
+  };
+
+  const logoStyle = {
+    fontSize: '20px',
+    fontWeight: 'bold',
+    textDecoration: 'none',
+    color: '#333'
+  };
+
+  const menuButtonStyle = {
+    background: 'none',
+    border: 'none',
+    fontSize: '18px',
+    cursor: 'pointer',
+    display: 'none'
+  };
+
+  const navLinksStyle = {
+    display: 'flex',
+    listStyle: 'none',
+    gap: '20px',
+    alignItems: 'center'
+  };
+
+  const linkStyle = {
+    textDecoration: 'none',
+    color: '#333',
+    padding: '8px 12px'
+  };
+
+  const activeLinkStyle = {
+    ...linkStyle,
+    fontWeight: 'bold',
+    backgroundColor: '#e0e0e0'
+  };
+
+  const logoutButtonStyle = {
+    backgroundColor: '#f0f0f0',
+    border: '1px solid #ccc',
+    padding: '8px 12px',
+    cursor: 'pointer'
+  };
+
+  const mobileMenuStyle = {
+    display: isOpen ? 'block' : 'none',
+    position: 'absolute',
+    top: '100%',
+    left: '0',
+    right: '0',
+    backgroundColor: '#f5f5f5',
+    borderTop: '1px solid #ddd',
+    padding: '10px 20px'
+  };
+
+  const mobileNavLinksStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    listStyle: 'none',
+    gap: '10px'
+  };
+
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-md">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        {/* Logo/Title */}
-        <h1 className="text-2xl font-bold text-gray-800 hover:text-blue-600 transition-colors">
-          <NavLink to="/">My Application</NavLink>
+    <header style={navStyle}>
+      <div style={containerStyle}>
+        <h1>
+          <NavLink to="/" style={logoStyle}>
+            My Application
+          </NavLink>
         </h1>
 
-        {/* Mobile Menu Button */}
         <button
-          className="md:hidden text-gray-600 hover:text-blue-600 focus:outline-none"
+          style={{
+            ...menuButtonStyle,
+            display: window.innerWidth <= 768 ? 'block' : 'none'
+          }}
           onClick={toggleMenu}
-          aria-label="Toggle menu"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d={isOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
-            />
-          </svg>
+          ☰
         </button>
 
-        {/* Navigation Links */}
-        <nav
-          className={`${
-            isOpen ? 'block' : 'hidden'
-          } md:block absolute md:static top-16 left-0 w-full md:w-auto bg-white md:bg-transparent shadow-md md:shadow-none`}
-        >
-          <ul className="flex flex-col md:flex-row md:items-center md:space-x-2 p-4 md:p-0">
-            <li className="mb-2 md:mb-0">
+        <nav style={{ display: window.innerWidth <= 768 ? 'none' : 'block' }}>
+          <ul style={navLinksStyle}>
+            <li>
               <NavLink
                 to="/"
-                className={({ isActive }) =>
-                  `block py-2 px-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors ${
-                    isActive ? 'text-blue-600 font-semibold bg-blue-100' : ''
-                  }`
-                }
-                onClick={() => setIsOpen(false)}
+                style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
               >
                 Home
               </NavLink>
@@ -63,12 +121,7 @@ const Navbar = () => {
             <li>
               <NavLink
                 to="/clients"
-                className={({ isActive }) =>
-                  `block py-2 px-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors ${
-                    isActive ? 'text-blue-600 font-semibold bg-blue-100' : ''
-                  }`
-                }
-                onClick={() => setIsOpen(false)}
+                style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
               >
                 Clients
               </NavLink>
@@ -76,12 +129,7 @@ const Navbar = () => {
             <li>
               <NavLink
                 to="/lead"
-                className={({ isActive }) =>
-                  `block py-2 px-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors ${
-                    isActive ? 'text-blue-600 font-semibold bg-blue-100' : ''
-                  }`
-                }
-                onClick={() => setIsOpen(false)}
+                style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
               >
                 Leads
               </NavLink>
@@ -89,26 +137,65 @@ const Navbar = () => {
             <li>
               <NavLink
                 to="/call-today"
-                className={({ isActive }) =>
-                  `block py-2 px-4 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors ${
-                    isActive ? 'text-blue-600 font-semibold bg-blue-100' : ''
-                  }`
-                }
-                onClick={() => setIsOpen(false)}
+                style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
               >
                 Call Today
               </NavLink>
             </li>
-            <li className="mt-2 md:mt-0 md:ml-4">
-              <button
-                onClick={handleLogout}
-                className="w-full text-left py-2 px-4 text-red-600 hover:bg-red-50 rounded-md transition-colors border border-red-200 hover:border-red-300"
-              >
+            <li>
+              <button onClick={handleLogout} style={logoutButtonStyle}>
                 Logout
               </button>
             </li>
           </ul>
         </nav>
+      </div>
+
+      {/* Mobile Menu */}
+      <div style={mobileMenuStyle}>
+        <ul style={mobileNavLinksStyle}>
+          <li>
+            <NavLink
+              to="/"
+              style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
+              onClick={() => setIsOpen(false)}
+            >
+              Home
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/clients"
+              style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
+              onClick={() => setIsOpen(false)}
+            >
+              Clients
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/lead"
+              style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
+              onClick={() => setIsOpen(false)}
+            >
+              Leads
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/call-today"
+              style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
+              onClick={() => setIsOpen(false)}
+            >
+              Call Today
+            </NavLink>
+          </li>
+          <li>
+            <button onClick={handleLogout} style={logoutButtonStyle}>
+              Logout
+            </button>
+          </li>
+        </ul>
       </div>
     </header>
   );
