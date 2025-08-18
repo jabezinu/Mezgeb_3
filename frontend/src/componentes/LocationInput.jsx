@@ -172,80 +172,83 @@ const LocationInput = ({ value, onChange, name, placeholder = "Enter location", 
     });
   };
 
-  const handlePreciseChange = (e) => {
-    const newPreciseLocation = e.target.value;
-    setPreciseLocation(newPreciseLocation);
-    setLocationError('');
-    
-    // Update combined value
-    const combinedValue = `${areaName} | ${newPreciseLocation}`;
-    onChange({
-      target: {
-        name,
-        value: combinedValue
-      }
-    });
+  const containerStyle = {
+    marginBottom: '10px'
+  };
+
+  const inputContainerStyle = {
+    display: 'flex',
+    gap: '8px',
+    marginBottom: '8px'
+  };
+
+  const inputStyle = {
+    flex: 1,
+    padding: '8px',
+    border: '1px solid #ccc',
+    fontSize: '14px'
+  };
+
+  const buttonStyle = {
+    padding: '8px 12px',
+    backgroundColor: isGettingLocation ? '#ccc' : '#4caf50',
+    color: 'white',
+    border: 'none',
+    cursor: isGettingLocation ? 'not-allowed' : 'pointer',
+    fontSize: '12px',
+    minWidth: '80px'
+  };
+
+  const errorStyle = {
+    color: '#f44336',
+    fontSize: '12px',
+    backgroundColor: '#ffebee',
+    padding: '8px',
+    border: '1px solid #f44336',
+    marginTop: '5px'
+  };
+
+  const warningStyle = {
+    color: '#ff9800',
+    fontSize: '12px',
+    backgroundColor: '#fff3e0',
+    padding: '8px',
+    border: '1px solid #ff9800',
+    marginTop: '5px'
   };
 
   return (
-    <div className="space-y-2">
-      {/* Single Location Input - shows area name, stores precise location in background */}
-      <div className="flex gap-2">
+    <div style={containerStyle}>
+      <div style={inputContainerStyle}>
         <input
           value={areaName}
           onChange={handleAreaChange}
           required={required}
           placeholder={placeholder}
-          className="flex-1 px-3 py-2 border border-gray-600 bg-slate-900/40 text-white rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-colors text-sm"
+          style={inputStyle}
         />
         {isGeolocationSupported && (
           <button
             type="button"
             onClick={getCurrentLocation}
             disabled={isGettingLocation}
-            className={`px-3 py-2 rounded-lg font-medium transition-all duration-300 flex items-center justify-center min-w-[100px] text-sm ${
-              isGettingLocation
-                ? 'bg-gray-500/50 text-gray-300 cursor-not-allowed'
-                : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-400 hover:to-teal-500 hover:shadow-lg'
-            }`}
+            style={buttonStyle}
             title="Get current location"
           >
-            {isGettingLocation ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Getting...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Current
-              </>
-            )}
+            {isGettingLocation ? 'Getting...' : 'Current'}
           </button>
         )}
       </div>
       
       {locationError && (
-        <div className="flex items-center text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-          <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {locationError}
+        <div style={errorStyle}>
+          ⚠️ {locationError}
         </div>
       )}
       
       {!isGeolocationSupported && (
-        <div className="flex items-center text-amber-400 text-sm bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
-          <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Location services not available in this browser
+        <div style={warningStyle}>
+          ℹ️ Location services not available in this browser
         </div>
       )}
     </div>

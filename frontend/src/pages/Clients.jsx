@@ -1,14 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 import api from '../api';
 import ClientCard from '../componentes/ClientCard';
 import StatsDashboard from '../componentes/StatsDashboard';
 import SearchFilterBar from '../componentes/SearchFilterBar';
 import ClientModal from '../componentes/ClientModal';
-import DeadClientsSection from '../componentes/DeadClientsSection';
-import FloatingActionMenu from '../componentes/FloatingActionMenu';
-import GestureOverlay from '../componentes/GestureOverlay';
-import SmartNotifications from '../componentes/SmartNotifications';
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
@@ -121,22 +116,77 @@ const Clients = () => {
     return matchesSearch && client.status === 'dead';
   });
 
+  const containerStyle = {
+    minHeight: '100vh',
+    backgroundColor: '#f5f5f5',
+    padding: '20px'
+  };
+
+  const headerStyle = {
+    textAlign: 'center',
+    marginBottom: '30px'
+  };
+
+  const titleStyle = {
+    fontSize: '32px',
+    fontWeight: 'bold',
+    marginBottom: '10px',
+    color: '#333'
+  };
+
+  const subtitleStyle = {
+    fontSize: '16px',
+    color: '#666',
+    marginBottom: '20px'
+  };
+
+  const addButtonStyle = {
+    backgroundColor: '#2196f3',
+    color: 'white',
+    padding: '12px 24px',
+    border: 'none',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    marginBottom: '20px'
+  };
+
+  const gridStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+    gap: '20px',
+    marginTop: '20px'
+  };
+
+  const emptyStateStyle = {
+    textAlign: 'center',
+    padding: '60px 20px',
+    color: '#666'
+  };
+
+  const loadingStyle = {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '200px',
+    fontSize: '18px',
+    color: '#666'
+  };
+
+  const errorStyle = {
+    textAlign: 'center',
+    padding: '40px',
+    backgroundColor: '#ffebee',
+    border: '1px solid #f44336',
+    color: '#d32f2f',
+    marginBottom: '20px'
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center relative overflow-hidden">
-        {/* Loading spinner and message */}
-        <div className="absolute inset-0 animate-pulse" style={{backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")"}}></div>
-        <div className="text-center z-10">
-          <div className="relative">
-            <div className="w-24 h-24 border-4 border-transparent border-t-cyan-400 border-r-purple-400 border-b-pink-400 border-l-blue-400 rounded-full animate-spin mx-auto mb-8"></div>
-            <div className="absolute inset-0 w-24 h-24 border-4 border-transparent border-t-purple-400 border-r-pink-400 border-b-cyan-400 border-l-blue-400 rounded-full animate-spin mx-auto animate-reverse"></div>
-          </div>
-          <div className="bg-white/10 backdrop-blur-xl rounded-3xl px-8 py-6 border border-white/20">
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-              Loading Clients
-            </h3>
-            <p className="text-gray-300">Preparing your magnificent dashboard...</p>
-          </div>
+      <div style={containerStyle}>
+        <div style={loadingStyle}>
+          Loading clients...
         </div>
       </div>
     );
@@ -144,15 +194,11 @@ const Clients = () => {
 
   if (error && !showModal) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-900 via-rose-900 to-pink-900 flex items-center justify-center">
-        <div className="text-center bg-white/10 backdrop-blur-xl rounded-3xl p-12 border border-red-500/20 shadow-2xl">
-          <div className="text-8xl mb-6">💥</div>
-          <h3 className="text-3xl font-bold text-white mb-4">Oops! Something went wrong</h3>
-          <p className="text-xl text-red-200 mb-6">{error}</p>
-          <button 
-            onClick={fetchClients}
-            className="bg-gradient-to-r from-red-500 to-pink-600 text-white px-8 py-3 rounded-2xl font-bold hover:shadow-2xl hover:scale-105 transition-all duration-300"
-          >
+      <div style={containerStyle}>
+        <div style={errorStyle}>
+          <h3>Error</h3>
+          <p>{error}</p>
+          <button onClick={fetchClients} style={addButtonStyle}>
             Try Again
           </button>
         </div>
@@ -161,143 +207,90 @@ const Clients = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Animated Background and Floating Particles */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-cyan-400/20 to-blue-600/20 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-purple-400/20 to-pink-600/20 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-br from-pink-400/20 to-red-600/20 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-green-400/20 to-teal-600/20 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-6000"></div>
+    <div style={containerStyle}>
+      {/* Header */}
+      <div style={headerStyle}>
+        <h1 style={titleStyle}>Client Management</h1>
+        <p style={subtitleStyle}>Manage your business relationships</p>
+        
+        <button onClick={openAddModal} style={addButtonStyle}>
+          + Add New Client
+        </button>
+        
+        <SearchFilterBar
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filterStatus={filterStatus}
+          setFilterStatus={setFilterStatus}
+        />
       </div>
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-2 h-2 bg-white/10 rounded-full animate-float"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`
-            }}
-          />
-        ))}
-      </div>
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 relative z-10">
-        {/* Header */}
-        <div className="text-center mb-8 sm:mb-16">
-          <div className="relative inline-block">
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-4 sm:mb-6">
-              CLIENT NEXUS
-            </h1>
-            <div className="absolute -inset-4 bg-gradient-to-r from-cyan-400/20 via-purple-400/20 to-pink-400/20 blur-2xl rounded-full"></div>
-          </div>
-          <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-6 sm:mb-8 font-light px-4">Where Business Relationships Transform Into Success</p>
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-8 sm:mb-12 px-4">
-            <button
-              onClick={openAddModal}
-              className="group relative px-6 sm:px-10 py-4 sm:py-5 text-lg sm:text-xl font-bold text-white bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 rounded-full hover:shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-500 overflow-hidden w-full sm:w-auto"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="relative flex items-center justify-center">
-                <svg className="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-3 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Launch New Client
-              </div>
-              <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full blur-xl"></div>
-            </button>
-          </div>
-          <div className="px-4">
-            <SearchFilterBar
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filterStatus={filterStatus}
-              setFilterStatus={setFilterStatus}
-            />
-          </div>
-          <div className="mt-4 text-sm text-gray-400 px-4">
-            Tap cards to expand • Swipe-friendly mobile design
-          </div>
-        </div>
-        <StatsDashboard clients={clients} />
-        {/* Revolutionary Client Grid */}
-        <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ 
-            duration: 0.8,
-            staggerChildren: 0.1,
-            delayChildren: 0.2
-          }}
-        >
-          {filteredClients.map((client, index) => (
-            <motion.div
-              key={client._id}
-              initial={{ opacity: 0, y: 50, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ 
-                duration: 0.6,
-                delay: index * 0.1,
-                ease: [0.23, 1, 0.32, 1]
-              }}
-              whileInView={{ 
-                opacity: 1,
-                transition: { duration: 0.6 }
-              }}
-              viewport={{ once: true, margin: "-100px" }}
-            >
-              <ClientCard
-                client={client}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
-        {/* Empty State */}
-        {filteredClients.length === 0 && clients.length > 0 && deadClients.length === 0 && (
-          <div className="text-center py-20">
-            <div className="text-8xl mb-8">🔍</div>
-            <h3 className="text-3xl font-bold text-white mb-4">No clients match your search</h3>
-            <p className="text-gray-400 text-lg mb-8">Try adjusting your search terms or filters</p>
-            <button
-              onClick={() => {setSearchTerm(''); setFilterStatus('all');}}
-              className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-8 py-3 rounded-2xl font-bold hover:shadow-2xl hover:scale-105 transition-all duration-300"
-            >
-              Clear Filters
-            </button>
-          </div>
-        )}
-        {clients.length === 0 && (
-          <div className="text-center py-20">
-            <div className="text-9xl mb-8">🌟</div>
-            <h3 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-4">
-              Your Client Journey Begins Here
-            </h3>
-            <p className="text-gray-400 text-xl mb-12 max-w-2xl mx-auto leading-relaxed">
-              Transform your business relationships into a powerful network of success. Add your first client and watch your empire grow.
-            </p>
-            <button
-              onClick={openAddModal}
-              className="bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-600 text-white px-12 py-5 rounded-full text-xl font-bold hover:shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-500"
-            >
-              🚀 Launch Your First Client
-            </button>
-          </div>
-        )}
-        {/* Dead Clients Section */}
-        {deadClients.length > 0 && (
-          <DeadClientsSection
-            deadClients={deadClients}
-            showDeadClients={showDeadClients}
-            setShowDeadClients={setShowDeadClients}
+
+      <StatsDashboard clients={clients} />
+
+      {/* Client Grid */}
+      <div style={gridStyle}>
+        {filteredClients.map((client) => (
+          <ClientCard
+            key={client._id}
+            client={client}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
-        )}
+        ))}
       </div>
+
+      {/* Empty State */}
+      {filteredClients.length === 0 && clients.length > 0 && deadClients.length === 0 && (
+        <div style={emptyStateStyle}>
+          <h3>No clients match your search</h3>
+          <p>Try adjusting your search terms or filters</p>
+          <button
+            onClick={() => {setSearchTerm(''); setFilterStatus('all');}}
+            style={addButtonStyle}
+          >
+            Clear Filters
+          </button>
+        </div>
+      )}
+
+      {clients.length === 0 && (
+        <div style={emptyStateStyle}>
+          <h3>No clients yet</h3>
+          <p>Add your first client to get started</p>
+          <button onClick={openAddModal} style={addButtonStyle}>
+            Add Your First Client
+          </button>
+        </div>
+      )}
+
+      {/* Dead Clients Section */}
+      {deadClients.length > 0 && (
+        <div style={{ marginTop: '40px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+            <h3 style={{ margin: 0, marginRight: '15px' }}>Dead Clients ({deadClients.length})</h3>
+            <button
+              onClick={() => setShowDeadClients(!showDeadClients)}
+              style={{ ...addButtonStyle, backgroundColor: '#666', padding: '8px 16px', fontSize: '14px' }}
+            >
+              {showDeadClients ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          
+          {showDeadClients && (
+            <div style={gridStyle}>
+              {deadClients.map((client) => (
+                <ClientCard
+                  key={client._id}
+                  client={client}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Modal */}
       <ClientModal
         open={showModal}
@@ -308,44 +301,6 @@ const Clients = () => {
         editingId={editingId}
         error={error}
       />
-
-      {/* Revolutionary Floating Action Menu */}
-      <FloatingActionMenu
-        onAddClient={openAddModal}
-        onQuickCall={() => {
-          const randomClient = filteredClients[Math.floor(Math.random() * filteredClients.length)];
-          if (randomClient) window.open(`tel:${randomClient.phone}`, '_self');
-        }}
-        onViewStats={() => {
-          document.querySelector('.grid').scrollIntoView({ behavior: 'smooth' });
-        }}
-      />
-
-      {/* Revolutionary Gesture System */}
-      <GestureOverlay
-        onGesture={(gesture) => {
-          switch (gesture) {
-            case 'swipe-up':
-              openAddModal();
-              break;
-            case 'swipe-down':
-              document.querySelector('.grid').scrollIntoView({ behavior: 'smooth' });
-              break;
-            case 'swipe-left':
-              const randomClient = filteredClients[Math.floor(Math.random() * filteredClients.length)];
-              if (randomClient) window.open(`tel:${randomClient.phone}`, '_self');
-              break;
-            case 'swipe-right':
-              // Focus mode - collapse all cards
-              setSearchTerm('');
-              setFilterStatus('active');
-              break;
-          }
-        }}
-      />
-
-      {/* Revolutionary Smart Notifications */}
-      <SmartNotifications clients={clients} />
     </div>
   );
 };

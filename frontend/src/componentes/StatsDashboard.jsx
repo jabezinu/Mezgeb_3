@@ -1,60 +1,98 @@
 import React from 'react';
 
-const statusColors = {
-  started: 'from-amber-400 via-orange-500 to-red-500',
-  active: 'from-emerald-400 via-green-500 to-teal-600',
-  onaction: 'from-blue-400 via-indigo-500 to-purple-600',
-  closed: 'from-gray-400 via-slate-500 to-stone-600',
-  dead: 'from-red-400 via-rose-500 to-pink-600',
-};
-const statusIcons = {
-  started: '🚀',
-  active: '⚡',
-  onaction: '🎯',
-  closed: '🔒',
-  dead: '💀',
-};
-
 const StatsDashboard = ({ clients }) => {
   const totalValue = clients.reduce((sum, client) => sum + (parseFloat(client.deal) || 0), 0);
+  
+  const statusLabels = {
+    started: 'Started',
+    active: 'Active',
+    onaction: 'On Action',
+    closed: 'Closed',
+    dead: 'Dead',
+  };
+
+  const containerStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+    gap: '15px',
+    marginBottom: '30px'
+  };
+
+  const cardStyle = {
+    backgroundColor: 'white',
+    padding: '15px',
+    border: '1px solid #ddd',
+    textAlign: 'center'
+  };
+
+  const numberStyle = {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: '#333',
+    margin: '5px 0'
+  };
+
+  const labelStyle = {
+    fontSize: '12px',
+    color: '#666',
+    textTransform: 'uppercase',
+    fontWeight: 'bold'
+  };
+
+  const progressBarStyle = {
+    height: '4px',
+    backgroundColor: '#eee',
+    marginTop: '8px',
+    overflow: 'hidden'
+  };
+
+  const progressFillStyle = {
+    height: '100%',
+    backgroundColor: '#2196f3'
+  };
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 mb-8 sm:mb-12 lg:mb-16">
+    <div style={containerStyle}>
       {/* Total Clients */}
-      <div className="col-span-2 sm:col-span-3 lg:col-span-1 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-white/20 hover:shadow-2xl hover:shadow-cyan-500/25 transition-all duration-500 hover:scale-105 group">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-gray-400 text-xs sm:text-sm font-medium uppercase tracking-wider">Total Clients</p>
-            <p className="text-2xl sm:text-3xl lg:text-4xl font-black text-white group-hover:text-cyan-400 transition-colors duration-300">{clients.length}</p>
-          </div>
-          <div className="text-2xl sm:text-3xl lg:text-4xl group-hover:scale-110 transition-transform duration-300">👥</div>
+      <div style={cardStyle}>
+        <div style={labelStyle}>Total Clients</div>
+        <div style={numberStyle}>{clients.length}</div>
+        <div style={progressBarStyle}>
+          <div style={{ ...progressFillStyle, width: '100%' }}></div>
         </div>
-        <div className="mt-3 sm:mt-4 h-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full group-hover:from-cyan-400 group-hover:to-blue-500 transition-all duration-300"></div>
       </div>
+
       {/* Status Cards */}
-      {Object.entries(statusColors).map(([status, gradient]) => {
+      {Object.entries(statusLabels).map(([status, label]) => {
         const count = clients.filter(client => client.status === status).length;
         const percentage = clients.length > 0 ? (count / clients.length) * 100 : 0;
+        
         return (
-          <div key={status} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-3 sm:p-4 lg:p-6 border border-white/20 hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-500 hover:scale-105 group">
-            <div className="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
-              <div>
-                <p className="text-gray-400 text-xs font-medium uppercase tracking-wider truncate">{status}</p>
-                <p className="text-xl sm:text-2xl lg:text-3xl font-black text-white group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-pink-400 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">{count}</p>
-              </div>
-              <div className="text-xl sm:text-2xl lg:text-3xl group-hover:scale-110 transition-transform duration-300">{statusIcons[status]}</div>
+          <div key={status} style={cardStyle}>
+            <div style={labelStyle}>{label}</div>
+            <div style={numberStyle}>{count}</div>
+            <div style={progressBarStyle}>
+              <div style={{ ...progressFillStyle, width: `${percentage}%` }}></div>
             </div>
-            <div className="relative h-1.5 sm:h-2 bg-gray-700 rounded-full overflow-hidden">
-              <div 
-                className={`h-full bg-gradient-to-r ${gradient} transition-all duration-1000 ease-out rounded-full`}
-                style={{ width: `${percentage}%` }}
-              />
+            <div style={{ fontSize: '10px', color: '#999', marginTop: '4px' }}>
+              {percentage.toFixed(1)}%
             </div>
-            <p className="text-xs text-gray-400 mt-1 sm:mt-2">{percentage.toFixed(1)}%</p>
           </div>
         );
       })}
+
+      {/* Total Deal Value */}
+      {totalValue > 0 && (
+        <div style={cardStyle}>
+          <div style={labelStyle}>Total Value</div>
+          <div style={numberStyle}>${totalValue.toLocaleString()}</div>
+          <div style={progressBarStyle}>
+            <div style={{ ...progressFillStyle, width: '100%', backgroundColor: '#4caf50' }}></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default StatsDashboard; 
+export default StatsDashboard;
