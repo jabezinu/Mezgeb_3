@@ -1,47 +1,28 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Home from './pages/Home';
-import Leads from './pages/Leads';
-import Clients from './pages/Clients';
-import CallToday from './pages/CallToday';
-import Login from './pages/Login';
-import Navbar from './componentes/Navbar';
+import { Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
+import Overview from './pages/Overview';
+import Clients from './pages/Clients';
+import Leads from './pages/Leads';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
-const AppContent = () => {
-  const { isAuthenticated } = useAuth();
-
-  return (
-    <div>
-      {isAuthenticated && <Navbar />}
-      
-      <main className="pt-16">
-        <Routes>
-          <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
-          
-          {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/lead" element={<Leads />} />
-            <Route path="/clients" element={<Clients />} />
-            <Route path="/call-today" element={<CallToday />} />
-          </Route>
-          
-          {/* Redirect any unknown paths to home or login */}
-          <Route path="*" element={isAuthenticated ? <Navigate to="/" /> : <Navigate to="/login" />} />
-        </Routes>
-      </main>
-    </div>
-  );
-};
-
-const App = () => {
+export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <Routes>
+        <Route element={<ProtectedRoute />}> 
+          <Route element={<Layout />}> 
+            <Route index element={<Overview />} />
+            <Route path="clients" element={<Clients />} />
+            <Route path="leads" element={<Leads />} />
+          </Route>
+        </Route>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="*" element={<div className="p-6">Not Found</div>} />
+      </Routes>
     </AuthProvider>
   );
-};
-
-export default App;
+}

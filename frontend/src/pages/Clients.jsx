@@ -1,308 +1,194 @@
-import React, { useEffect, useState } from 'react';
-import api from '../api';
-import ClientCard from '../componentes/ClientCard';
-import StatsDashboard from '../componentes/StatsDashboard';
-import SearchFilterBar from '../componentes/SearchFilterBar';
-import ClientModal from '../componentes/ClientModal';
+import { useEffect, useMemo, useState } from 'react';
+import { ClientsAPI } from '../api/client';
 
-const Clients = () => {
-  const [clients, setClients] = useState([]);
+const initialForm = {
+  businessName: '',
+  managerName: '',
+  phoneNumbers: '', // comma separated in UI
+  primaryPhoneIndex: 0,
+  firstVisit: '',
+  nextVisit: '',
+  place: '',
+  status: 'started',
+  deal: '',
+  description: ''
+};
+
+export default function Clients() {
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [showDeadClients, setShowDeadClients] = useState(false);
-  const [form, setForm] = useState({
-    businessName: '',
-    managerName: '',
-    phone: '',
-    firstVisit: '',
-    nextVisit: '',
-    place: '',
-    status: 'started',
-    deal: '',
-    description: '',
-  });
+  const [error, setError] = useState('');
+  const [form, setForm] = useState(initialForm);
   const [editingId, setEditingId] = useState(null);
 
-  const fetchClients = () => {
+  const statuses = useMemo(() => ['started','active','onaction','closed','dead'], []);
+
+  async function load() {
     setLoading(true);
-    api.get('/clients')
-      .then(res => {
-        setClients(res.data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError('Failed to fetch clients');
-        setLoading(false);
-      });
-  };
-
-  useEffect(() => {
-    fetchClients();
-  }, []);
-
-  const handleSubmit = () => {
-    setError(null);
-    if (editingId) {
-      api.put(`/clients/${editingId}`, form)
-        .then(() => {
-          fetchClients();
-          resetForm();
-        })
-        .catch(() => setError('Failed to update client'));
-    } else {
-      api.post('/clients', form)
-        .then(() => {
-          fetchClients();
-          resetForm();
-        })
-        .catch(() => setError('Failed to add client'));
+    setError('');
+    try {
+      const data = await ClientsAPI.list();
+      setItems(data);
+    } catch (e) {
+      setError(e.message || 'Failed to load clients');
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const resetForm = () => {
-    setForm({
-      businessName: '', managerName: '', phone: '', firstVisit: '', nextVisit: '', place: '', status: 'started', deal: '', description: ''
-    });
-    setEditingId(null);
-    setShowModal(false);
-  };
-
-  const handleEdit = client => {
-    setForm({
-      businessName: client.businessName || '',
-      managerName: client.managerName || '',
-      phone: client.phone || '',
-      firstVisit: client.firstVisit ? client.firstVisit.slice(0, 10) : '',
-      nextVisit: client.nextVisit ? client.nextVisit.slice(0, 10) : '',
-      place: client.place || '',
-      status: client.status || 'started',
-      deal: client.deal || '',
-      description: client.description || '',
-    });
-    setEditingId(client._id);
-    setShowModal(true);
-  };
-
-  const handleDelete = id => {
-    if (window.confirm('Are you sure you want to delete this client?')) {
-      api.delete(`/clients/${id}`)
-        .then(() => fetchClients())
-        .catch(() => setError('Failed to delete client'));
-    }
-  };
-
-  const openAddModal = () => {
-    resetForm();
-    setShowModal(true);
-  };
-
-  // Filter clients based on search and status, separating dead clients
-  const filteredClients = clients.filter(client => {
-    const matchesSearch = client.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         client.managerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         client.place.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || client.status === filterStatus;
-    return matchesSearch && matchesStatus && client.status !== 'dead';
-  });
-
-  // Separate dead clients
-  const deadClients = clients.filter(client => {
-    const matchesSearch = client.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         client.managerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         client.place.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch && client.status === 'dead';
-  });
-
-  const containerStyle = {
-    minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
-    padding: '20px'
-  };
-
-  const headerStyle = {
-    textAlign: 'center',
-    marginBottom: '30px'
-  };
-
-  const titleStyle = {
-    fontSize: '32px',
-    fontWeight: 'bold',
-    marginBottom: '10px',
-    color: '#333'
-  };
-
-  const subtitleStyle = {
-    fontSize: '16px',
-    color: '#666',
-    marginBottom: '20px'
-  };
-
-  const addButtonStyle = {
-    backgroundColor: '#2196f3',
-    color: 'white',
-    padding: '12px 24px',
-    border: 'none',
-    fontSize: '16px',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    marginBottom: '20px'
-  };
-
-  const gridStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-    gap: '20px',
-    marginTop: '20px'
-  };
-
-  const emptyStateStyle = {
-    textAlign: 'center',
-    padding: '60px 20px',
-    color: '#666'
-  };
-
-  const loadingStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '200px',
-    fontSize: '18px',
-    color: '#666'
-  };
-
-  const errorStyle = {
-    textAlign: 'center',
-    padding: '40px',
-    backgroundColor: '#ffebee',
-    border: '1px solid #f44336',
-    color: '#d32f2f',
-    marginBottom: '20px'
-  };
-
-  if (loading) {
-    return (
-      <div style={containerStyle}>
-        <div style={loadingStyle}>
-          Loading clients...
-        </div>
-      </div>
-    );
   }
 
-  if (error && !showModal) {
-    return (
-      <div style={containerStyle}>
-        <div style={errorStyle}>
-          <h3>Error</h3>
-          <p>{error}</p>
-          <button onClick={fetchClients} style={addButtonStyle}>
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
+  useEffect(() => { load(); }, []);
+
+  function toArrayPhones(value) {
+    return value
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  function fromArrayPhones(arr) {
+    return Array.isArray(arr) ? arr.join(', ') : '';
+  }
+
+  function startEdit(item) {
+    setEditingId(item._id);
+    setForm({
+      businessName: item.businessName || '',
+      managerName: item.managerName || '',
+      phoneNumbers: fromArrayPhones(item.phoneNumbers || []),
+      primaryPhoneIndex: item.primaryPhoneIndex ?? 0,
+      firstVisit: item.firstVisit ? item.firstVisit.substring(0,10) : '',
+      nextVisit: item.nextVisit ? item.nextVisit.substring(0,10) : '',
+      place: item.place || '',
+      status: item.status || 'started',
+      deal: item.deal ?? '',
+      description: item.description ?? ''
+    });
+  }
+
+  function resetForm() {
+    setEditingId(null);
+    setForm(initialForm);
+  }
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    setError('');
+
+    const payload = {
+      businessName: form.businessName,
+      managerName: form.managerName,
+      phoneNumbers: toArrayPhones(form.phoneNumbers),
+      primaryPhoneIndex: Number(form.primaryPhoneIndex) || 0,
+      firstVisit: form.firstVisit,
+      nextVisit: form.nextVisit,
+      place: form.place,
+      status: form.status,
+      deal: form.deal === '' ? undefined : Number(form.deal),
+      description: form.description || undefined,
+    };
+
+    try {
+      if (editingId) {
+        await ClientsAPI.update(editingId, payload);
+      } else {
+        await ClientsAPI.create(payload);
+      }
+      await load();
+      resetForm();
+    } catch (e) {
+      setError(e.message || 'Save failed');
+    }
+  }
+
+  async function onDelete(id) {
+    if (!confirm('Delete this client?')) return;
+    try {
+      await ClientsAPI.remove(id);
+      await load();
+    } catch (e) {
+      alert(e.message || 'Delete failed');
+    }
   }
 
   return (
-    <div style={containerStyle}>
-      {/* Header */}
-      <div style={headerStyle}>
-        <h1 style={titleStyle}>Client Management</h1>
-        <p style={subtitleStyle}>Manage your business relationships</p>
-        
-        <button onClick={openAddModal} style={addButtonStyle}>
-          + Add New Client
-        </button>
-        
-        <SearchFilterBar
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          filterStatus={filterStatus}
-          setFilterStatus={setFilterStatus}
-        />
-      </div>
-
-      <StatsDashboard clients={clients} />
-
-      {/* Client Grid */}
-      <div style={gridStyle}>
-        {filteredClients.map((client) => (
-          <ClientCard
-            key={client._id}
-            client={client}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        ))}
-      </div>
-
-      {/* Empty State */}
-      {filteredClients.length === 0 && clients.length > 0 && deadClients.length === 0 && (
-        <div style={emptyStateStyle}>
-          <h3>No clients match your search</h3>
-          <p>Try adjusting your search terms or filters</p>
-          <button
-            onClick={() => {setSearchTerm(''); setFilterStatus('all');}}
-            style={addButtonStyle}
-          >
-            Clear Filters
-          </button>
-        </div>
-      )}
-
-      {clients.length === 0 && (
-        <div style={emptyStateStyle}>
-          <h3>No clients yet</h3>
-          <p>Add your first client to get started</p>
-          <button onClick={openAddModal} style={addButtonStyle}>
-            Add Your First Client
-          </button>
-        </div>
-      )}
-
-      {/* Dead Clients Section */}
-      {deadClients.length > 0 && (
-        <div style={{ marginTop: '40px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ margin: 0, marginRight: '15px' }}>Dead Clients ({deadClients.length})</h3>
-            <button
-              onClick={() => setShowDeadClients(!showDeadClients)}
-              style={{ ...addButtonStyle, backgroundColor: '#666', padding: '8px 16px', fontSize: '14px' }}
-            >
-              {showDeadClients ? 'Hide' : 'Show'}
-            </button>
+    <div className="space-y-6">
+      <div className="bg-white border rounded p-4">
+        <h2 className="text-lg font-semibold mb-3">{editingId ? 'Edit Client' : 'New Client'}</h2>
+        {error && <div className="text-red-600 text-sm mb-2">{error}</div>}
+        <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm mb-1">Business Name</label>
+            <input className="w-full border rounded px-3 py-2" value={form.businessName} onChange={e=>setForm(f=>({...f, businessName: e.target.value}))} required />
           </div>
-          
-          {showDeadClients && (
-            <div style={gridStyle}>
-              {deadClients.map((client) => (
-                <ClientCard
-                  key={client._id}
-                  client={client}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+          <div>
+            <label className="block text-sm mb-1">Manager Name</label>
+            <input className="w-full border rounded px-3 py-2" value={form.managerName} onChange={e=>setForm(f=>({...f, managerName: e.target.value}))} required />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm mb-1">Phone Numbers (comma separated)</label>
+            <input className="w-full border rounded px-3 py-2" value={form.phoneNumbers} onChange={e=>setForm(f=>({...f, phoneNumbers: e.target.value}))} required />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Primary Phone Index</label>
+            <input type="number" min={0} className="w-full border rounded px-3 py-2" value={form.primaryPhoneIndex} onChange={e=>setForm(f=>({...f, primaryPhoneIndex: e.target.value}))} />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Place</label>
+            <input className="w-full border rounded px-3 py-2" value={form.place} onChange={e=>setForm(f=>({...f, place: e.target.value}))} required />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">First Visit</label>
+            <input type="date" className="w-full border rounded px-3 py-2" value={form.firstVisit} onChange={e=>setForm(f=>({...f, firstVisit: e.target.value}))} required />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Next Visit</label>
+            <input type="date" className="w-full border rounded px-3 py-2" value={form.nextVisit} onChange={e=>setForm(f=>({...f, nextVisit: e.target.value}))} required />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Status</label>
+            <select className="w-full border rounded px-3 py-2" value={form.status} onChange={e=>setForm(f=>({...f, status: e.target.value}))}>
+              {statuses.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Deal (ETB)</label>
+            <input type="number" className="w-full border rounded px-3 py-2" value={form.deal} onChange={e=>setForm(f=>({...f, deal: e.target.value}))} />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm mb-1">Description</label>
+            <textarea className="w-full border rounded px-3 py-2" rows={3} value={form.description} onChange={e=>setForm(f=>({...f, description: e.target.value}))} />
+          </div>
+          <div className="md:col-span-2 flex gap-2">
+            <button className="px-4 py-2 bg-gray-900 text-white rounded">{editingId ? 'Update' : 'Create'}</button>
+            {editingId && <button type="button" onClick={resetForm} className="px-4 py-2 border rounded">Cancel</button>}
+          </div>
+        </form>
+      </div>
 
-      {/* Modal */}
-      <ClientModal
-        open={showModal}
-        onClose={() => setShowModal(false)}
-        onSubmit={handleSubmit}
-        form={form}
-        setForm={setForm}
-        editingId={editingId}
-        error={error}
-      />
+      <div className="bg-white border rounded">
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold">Clients</h2>
+        </div>
+        <div className="divide-y">
+          {loading && <div className="p-4">Loading...</div>}
+          {!loading && items.length === 0 && <div className="p-4">No clients yet.</div>}
+          {items.map((c) => (
+            <div key={c._id} className="p-4 flex items-start justify-between gap-4">
+              <div>
+                <div className="font-medium">{c.businessName}</div>
+                <div className="text-sm text-gray-600">Manager: {c.managerName} • Place: {c.place} • Status: {c.status}</div>
+                <div className="text-sm text-gray-600">Phones: {(c.phoneNumbers||[]).join(', ')} (primary: {c.primaryPhoneIndex})</div>
+                {c.deal != null && <div className="text-sm text-gray-600">Deal: {c.deal}</div>}
+                {c.description && <div className="text-sm text-gray-600">{c.description}</div>}
+              </div>
+              <div className="flex gap-2">
+                <button className="px-3 py-1.5 text-sm border rounded" onClick={()=>startEdit(c)}>Edit</button>
+                <button className="px-3 py-1.5 text-sm bg-red-600 text-white rounded" onClick={()=>onDelete(c._id)}>Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Clients;
+}

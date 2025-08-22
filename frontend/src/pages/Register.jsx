@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function Login() {
-  const { login } = useAuth();
+export default function Register() {
+  const { register } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ phoneNumber: '', password: '' });
   const [error, setError] = useState('');
@@ -14,10 +14,10 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await login(form);
+      await register(form);
       navigate('/');
     } catch (e) {
-      setError(e.message || 'Login failed');
+      setError(e.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -26,7 +26,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
       <form onSubmit={onSubmit} className="w-full max-w-md bg-white border rounded-lg p-6 space-y-4">
-        <h1 className="text-xl font-semibold">Login</h1>
+        <h1 className="text-xl font-semibold">Register</h1>
         {error && <div className="text-red-600 text-sm">{error}</div>}
         <div>
           <label className="block text-sm mb-1">Phone Number</label>
@@ -49,9 +49,9 @@ export default function Login() {
           />
         </div>
         <button disabled={loading} className="w-full bg-gray-900 text-white rounded px-3 py-2">
-          {loading ? 'Signing in...' : 'Sign In'}
+          {loading ? 'Creating account...' : 'Create Account'}
         </button>
-        <p className="text-sm text-gray-600">No account? <Link to="/register" className="text-gray-900 underline">Register</Link></p>
+        <p className="text-sm text-gray-600">Have an account? <Link to="/login" className="text-gray-900 underline">Login</Link></p>
       </form>
     </div>
   );
