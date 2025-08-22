@@ -4,7 +4,7 @@ import { ClientsAPI } from '../api/client';
 const initialForm = {
   businessName: '',
   managerName: '',
-  phoneNumbers: '', // comma separated in UI
+  phoneNumbers: [''],
   primaryPhoneIndex: 0,
   firstVisit: '',
   nextVisit: '',
@@ -22,6 +22,7 @@ export default function Clients() {
   const [editingId, setEditingId] = useState(null);
   const [locating, setLocating] = useState(false);
   const [query, setQuery] = useState('');
+  const [callModal, setCallModal] = useState({ open: false, phones: [], title: '' });
 
   const statuses = useMemo(() => ['started','active','onaction','closed','dead'], []);
 
@@ -40,15 +41,10 @@ export default function Clients() {
 
   useEffect(() => { load(); }, []);
 
-  function toArrayPhones(value) {
-    return value
-      .split(',')
-      .map(s => s.trim())
+  function sanitizePhones(arr) {
+    return (Array.isArray(arr) ? arr : [])
+      .map(s => (s || '').trim())
       .filter(Boolean);
-  }
-
-  function fromArrayPhones(arr) {
-    return Array.isArray(arr) ? arr.join(', ') : '';
   }
 
   function startEdit(item) {
@@ -56,7 +52,9 @@ export default function Clients() {
     setForm({
       businessName: item.businessName || '',
       managerName: item.managerName || '',
-      phoneNumbers: fromArrayPhones(item.phoneNumbers || []),
+      phoneNumbers: (item.phoneNumbers && item.phoneNumbers.length
+        ? item.phoneNumbers
+        : (item.phone ? [item.phone] : [''])),
       primaryPhoneIndex: item.primaryPhoneIndex ?? 0,
       firstVisit: item.firstVisit ? item.firstVisit.substring(0,10) : '',
       nextVisit: item.nextVisit ? item.nextVisit.substring(0,10) : '',
@@ -79,8 +77,11 @@ export default function Clients() {
     const payload = {
       businessName: form.businessName,
       managerName: form.managerName,
-      phoneNumbers: toArrayPhones(form.phoneNumbers),
-      primaryPhoneIndex: Number(form.primaryPhoneIndex) || 0,
+      phoneNumbers: sanitizePhones(form.phoneNumbers),
+      primaryPhoneIndex: Math.min(
+        Math.max(0, Number(form.primaryPhoneIndex) || 0),
+        Math.max(0, sanitizePhones(form.phoneNumbers).length - 1)
+      ),
       firstVisit: form.firstVisit,
       nextVisit: form.nextVisit,
       place: form.place,
@@ -88,6 +89,11 @@ export default function Clients() {
       deal: form.deal === '' ? undefined : Number(form.deal),
       description: form.description || undefined,
     };
+
+    if (!payload.phoneNumbers.length) {
+      setError('Please provide at least one phone number.');
+      return;
+    }
 
     try {
       if (editingId) {
@@ -122,6 +128,7 @@ export default function Clients() {
         c.place,
         c.status,
         c.description,
+        c.phone,
         ...(Array.isArray(c.phoneNumbers) ? c.phoneNumbers : []),
       ]
         .filter(Boolean)
@@ -176,12 +183,61 @@ export default function Clients() {
             <input className="w-full border rounded px-3 py-2" value={form.managerName} onChange={e=>setForm(f=>({...f, managerName: e.target.value}))} required />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm mb-1">Phone Numbers (comma separated)</label>
-            <input className="w-full border rounded px-3 py-2" value={form.phoneNumbers} onChange={e=>setForm(f=>({...f, phoneNumbers: e.target.value}))} required />
+            <label className="block text-sm mb-1">Phone Numbers</label>
+            <div className="space-y-2">
+              {form.phoneNumbers.map((num, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
+                  <input
+                    className="w-full border rounded px-3 py-2"
+                    value={num}
+                    onChange={e=>setForm(f=>{
+                      const arr = [...f.phoneNumbers];
+                      arr[idx] = e.target.value;
+                      return { ...f, phoneNumbers: arr };
+                    })}
+                    placeholder={`Phone #${idx+1}`}
+                    required={idx === 0}
+                  />
+                  {form.phoneNumbers.length > 1 && (
+                    <button
+                      type="button"
+                      className="shrink-0 px-3 py-2 border rounded text-sm"
+                      onClick={() => setForm(f => {
+                        const arr = f.phoneNumbers.filter((_, i) => i !== idx);
+                        let primary = f.primaryPhoneIndex;
+                        if (idx === f.primaryPhoneIndex) primary = 0;
+                        else if (idx < f.primaryPhoneIndex) primary = Math.max(0, f.primaryPhoneIndex - 1);
+                        return { ...f, phoneNumbers: arr.length ? arr : [''], primaryPhoneIndex: primary };
+                      })}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                className="px-3 py-2 border rounded text-sm"
+                onClick={() => setForm(f => ({ ...f, phoneNumbers: [...(f.phoneNumbers||[]), ''] }))}
+              >
+                + Add Phone
+              </button>
+            </div>
           </div>
           <div>
-            <label className="block text-sm mb-1">Primary Phone Index</label>
-            <input type="number" min={0} className="w-full border rounded px-3 py-2" value={form.primaryPhoneIndex} onChange={e=>setForm(f=>({...f, primaryPhoneIndex: e.target.value}))} />
+            <label className="block text-sm mb-1">Primary Phone</label>
+            <select
+              className="w-full border rounded px-3 py-2"
+              value={form.primaryPhoneIndex}
+              onChange={e=>setForm(f=>({ ...f, primaryPhoneIndex: Number(e.target.value) }))}
+            >
+              {sanitizePhones(form.phoneNumbers).map((p, i) => (
+                <option key={i} value={i}>{p || `Phone #${i+1}`}</option>
+              ))}
+              {sanitizePhones(form.phoneNumbers).length === 0 && (
+                <option value={0}>Phone #1</option>
+              )}
+            </select>
           </div>
           <div>
             <label className="block text-sm mb-1">Place</label>
@@ -251,18 +307,63 @@ export default function Clients() {
                     <a href={buildMapsLink(c.place)} target="_blank" rel="noreferrer" className="text-blue-600 underline">map</a>
                   ) : 'N/A'} • Status: {c.status}
                 </div>
-                <div className="text-sm text-gray-600">Phones: {(c.phoneNumbers||[]).join(', ')} (primary: {c.primaryPhoneIndex})</div>
+                <div className="text-sm text-gray-600">Phones: {(() => {
+                  const arr = Array.isArray(c.phoneNumbers) ? c.phoneNumbers : [];
+                  if (arr.length > 0) return arr.join(', ');
+                  if (c.phone) return c.phone;
+                  return 'N/A';
+                })()}{typeof c.primaryPhoneIndex === 'number' && Array.isArray(c.phoneNumbers) && c.phoneNumbers.length > 0 ? ` (primary: ${c.primaryPhoneIndex})` : ''}</div>
                 {c.deal != null && <div className="text-sm text-gray-600">Deal: {c.deal}</div>}
                 {c.description && <div className="text-sm text-gray-600">{c.description}</div>}
               </div>
               <div className="flex gap-2">
                 <button className="px-3 py-1.5 text-sm border rounded" onClick={()=>startEdit(c)}>Edit</button>
+                <button
+                  className="px-3 py-1.5 text-sm border rounded"
+                  onClick={() => {
+                    const phonesArr = Array.isArray(c.phoneNumbers) ? c.phoneNumbers.filter(Boolean) : [];
+                    const phones = phonesArr.length ? phonesArr : (c.phone ? [c.phone] : []);
+                    if (phones.length === 0) return;
+                    if (phones.length === 1) {
+                      window.location.href = `tel:${phones[0].trim()}`;
+                    } else {
+                      setCallModal({ open: true, phones, title: c.businessName || 'Select number' });
+                    }
+                  }}
+                >
+                  Call
+                </button>
                 <button className="px-3 py-1.5 text-sm bg-red-600 text-white rounded" onClick={()=>onDelete(c._id)}>Delete</button>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {callModal.open && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded shadow-lg w-full max-w-sm p-4">
+            <div className="font-semibold mb-2">Call {callModal.title}</div>
+            <div className="space-y-2 mb-3">
+              {callModal.phones.map((p, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    setCallModal({ open: false, phones: [], title: '' });
+                    window.location.href = `tel:${p.trim()}`;
+                  }}
+                  className="w-full text-left px-3 py-2 border rounded hover:bg-gray-50"
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+            <div className="text-right">
+              <button className="px-3 py-2 border rounded" onClick={() => setCallModal({ open: false, phones: [], title: '' })}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
