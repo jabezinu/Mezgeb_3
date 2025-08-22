@@ -21,6 +21,7 @@ export default function Clients() {
   const [form, setForm] = useState(initialForm);
   const [editingId, setEditingId] = useState(null);
   const [locating, setLocating] = useState(false);
+  const [query, setQuery] = useState('');
 
   const statuses = useMemo(() => ['started','active','onaction','closed','dead'], []);
 
@@ -110,6 +111,25 @@ export default function Clients() {
       alert(e.message || 'Delete failed');
     }
   }
+
+  const filteredItems = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter((c) => {
+      const fields = [
+        c.businessName,
+        c.managerName,
+        c.place,
+        c.status,
+        c.description,
+        ...(Array.isArray(c.phoneNumbers) ? c.phoneNumbers : []),
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return fields.includes(q);
+    });
+  }, [items, query]);
 
   function buildMapsLink(value) {
     if (!value) return null;
@@ -207,13 +227,22 @@ export default function Clients() {
       </div>
 
       <div className="bg-white border rounded">
-        <div className="p-4 border-b">
+        <div className="p-4 border-b flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <h2 className="text-lg font-semibold">Clients</h2>
+          <input
+            type="text"
+            value={query}
+            onChange={e=>setQuery(e.target.value)}
+            placeholder="Search by name, phone, place, status..."
+            className="w-full md:w-80 border rounded px-3 py-2 text-sm"
+          />
         </div>
         <div className="divide-y">
           {loading && <div className="p-4">Loading...</div>}
-          {!loading && items.length === 0 && <div className="p-4">No clients yet.</div>}
-          {items.map((c) => (
+          {!loading && filteredItems.length === 0 && (
+            <div className="p-4">{items.length === 0 ? 'No clients yet.' : 'No matching clients.'}</div>
+          )}
+          {filteredItems.map((c) => (
             <div key={c._id} className="p-4 flex items-start justify-between gap-4">
               <div>
                 <div className="font-medium">{c.businessName}</div>
