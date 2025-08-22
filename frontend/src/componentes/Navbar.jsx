@@ -1,203 +1,114 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { Home, Users, Phone, UserPlus, Menu, X, LogOut } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { logout } = useAuth();
+  const [scrolled, setScrolled] = useState(false);
+  const { logout, currentUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
 
-  const navStyle = {
-    backgroundColor: '#f5f5f5',
-    borderBottom: '1px solid #ddd',
-    padding: '10px 20px'
-  };
-
-  const containerStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    maxWidth: '1200px',
-    margin: '0 auto'
-  };
-
-  const logoStyle = {
-    fontSize: '20px',
-    fontWeight: 'bold',
-    textDecoration: 'none',
-    color: '#333'
-  };
-
-  const menuButtonStyle = {
-    background: 'none',
-    border: 'none',
-    fontSize: '18px',
-    cursor: 'pointer',
-    display: 'none'
-  };
-
-  const navLinksStyle = {
-    display: 'flex',
-    listStyle: 'none',
-    gap: '20px',
-    alignItems: 'center'
-  };
-
-  const linkStyle = {
-    textDecoration: 'none',
-    color: '#333',
-    padding: '8px 12px'
-  };
-
-  const activeLinkStyle = {
-    ...linkStyle,
-    fontWeight: 'bold',
-    backgroundColor: '#e0e0e0'
-  };
-
-  const logoutButtonStyle = {
-    backgroundColor: '#f0f0f0',
-    border: '1px solid #ccc',
-    padding: '8px 12px',
-    cursor: 'pointer'
-  };
-
-  const mobileMenuStyle = {
-    display: isOpen ? 'block' : 'none',
-    position: 'absolute',
-    top: '100%',
-    left: '0',
-    right: '0',
-    backgroundColor: '#f5f5f5',
-    borderTop: '1px solid #ddd',
-    padding: '10px 20px'
-  };
-
-  const mobileNavLinksStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    listStyle: 'none',
-    gap: '10px'
-  };
+  if (!currentUser) return null;
 
   return (
-    <header style={navStyle}>
-      <div style={containerStyle}>
-        <h1>
-          <NavLink to="/" style={logoStyle}>
-            My Application
+    <nav className={`fixed inset-x-0 top-0 z-50 transition-shadow ${scrolled ? 'bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm' : 'bg-white'}`}>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-14 items-center justify-between">
+          <NavLink to="/" className="flex items-center gap-2 text-indigo-600 font-semibold text-lg">
+            Mezgeb CRM
           </NavLink>
-        </h1>
 
-        <button
-          style={{
-            ...menuButtonStyle,
-            display: window.innerWidth <= 768 ? 'block' : 'none'
-          }}
-          onClick={toggleMenu}
-        >
-          ☰
-        </button>
+          <button
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-indigo-600 hover:bg-indigo-50 lg:hidden"
+            onClick={() => setIsOpen(o => !o)}
+            aria-label="Toggle navigation"
+          >
+            {isOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
 
-        <nav style={{ display: window.innerWidth <= 768 ? 'none' : 'block' }}>
-          <ul style={navLinksStyle}>
+          <ul className="hidden list-none items-center gap-1 lg:flex">
             <li>
-              <NavLink
-                to="/"
-                style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
-              >
-                Home
+              <NavLink to="/" className={({isActive}) => `flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${isActive ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+                <Home size={18} /> Home
               </NavLink>
             </li>
             <li>
-              <NavLink
-                to="/clients"
-                style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
-              >
-                Clients
+              <NavLink to="/clients" className={({isActive}) => `flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${isActive ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+                <Users size={18} /> Clients
               </NavLink>
             </li>
             <li>
-              <NavLink
-                to="/lead"
-                style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
-              >
-                Leads
+              <NavLink to="/call-today" className={({isActive}) => `flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${isActive ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+                <Phone size={18} /> Call Today
               </NavLink>
             </li>
             <li>
-              <NavLink
-                to="/call-today"
-                style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
-              >
-                Call Today
+              <NavLink to="/leads" className={({isActive}) => `flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${isActive ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+                <UserPlus size={18} /> Leads
               </NavLink>
             </li>
-            <li>
-              <button onClick={handleLogout} style={logoutButtonStyle}>
-                Logout
+            <li className="ml-2">
+              <button
+                onClick={() => { logout(); navigate('/login'); }}
+                className="inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 hover:border-red-200"
+              >
+                <LogOut size={18} /> Logout
               </button>
             </li>
           </ul>
-        </nav>
+        </div>
       </div>
 
-      {/* Mobile Menu */}
-      <div style={mobileMenuStyle}>
-        <ul style={mobileNavLinksStyle}>
-          <li>
-            <NavLink
-              to="/"
-              style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
-              onClick={() => setIsOpen(false)}
-            >
-              Home
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/clients"
-              style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
-              onClick={() => setIsOpen(false)}
-            >
-              Clients
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/lead"
-              style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
-              onClick={() => setIsOpen(false)}
-            >
-              Leads
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/call-today"
-              style={({ isActive }) => isActive ? activeLinkStyle : linkStyle}
-              onClick={() => setIsOpen(false)}
-            >
-              Call Today
-            </NavLink>
-          </li>
-          <li>
-            <button onClick={handleLogout} style={logoutButtonStyle}>
-              Logout
-            </button>
-          </li>
-        </ul>
-      </div>
-    </header>
+      {/* Mobile menu */}
+      {isOpen && (
+        <div className="border-b border-gray-200 bg-white lg:hidden">
+          <div className="mx-auto max-w-7xl px-4 py-2">
+            <ul className="flex flex-col gap-1 py-1">
+              <li>
+                <NavLink to="/" className={({isActive}) => `flex items-center gap-2 rounded-md px-3 py-2 text-sm ${isActive ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+                  <Home size={18} /> Home
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/clients" className={({isActive}) => `flex items-center gap-2 rounded-md px-3 py-2 text-sm ${isActive ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+                  <Users size={18} /> Clients
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/call-today" className={({isActive}) => `flex items-center gap-2 rounded-md px-3 py-2 text-sm ${isActive ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+                  <Phone size={18} /> Call Today
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/leads" className={({isActive}) => `flex items-center gap-2 rounded-md px-3 py-2 text-sm ${isActive ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50'}`}>
+                  <UserPlus size={18} /> Leads
+                </NavLink>
+              </li>
+              <li className="pt-1">
+                <button
+                  onClick={() => { setIsOpen(false); logout(); navigate('/login'); }}
+                  className="inline-flex w-full items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 hover:border-red-200"
+                >
+                  <LogOut size={18} /> Logout
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
+    </nav>
   );
 };
 
