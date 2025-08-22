@@ -16,7 +16,7 @@ const AppContent = () => {
     <div>
       {isAuthenticated && <Navbar />}
       
-      <main>
+      <main className="pt-16">
         <Routes>
           <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
           

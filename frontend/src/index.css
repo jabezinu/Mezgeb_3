@@ -1,3 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 246 246 247; /* #f6f6f7 */
+  --card: 255 255 255; /* #ffffff */
+  --text: 31 41 55; /* #1f2937 */
+  --muted: 107 114 128; /* #6b7280 */
+  --primary: 79 70 229; /* indigo-600 */
+  --primary-50: 238 242 255; /* indigo-50 */
+  --danger: 239 68 68; /* red-500 */
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body { @apply bg-[rgb(var(--bg))] text-[rgb(var(--text))]; }
+}
+
+@layer components {
+  .btn-primary { @apply inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-outline-danger { @apply inline-flex items-center justify-center rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50; }
+  .input { @apply block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30; }
+  .card { @apply rounded-lg border border-gray-200 bg-white shadow-sm; }
+  .container-page { @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8; }
+}
+
 /* Very basic CSS reset and styling */
 * {
   margin: 0;
