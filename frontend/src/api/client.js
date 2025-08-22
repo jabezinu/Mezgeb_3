@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5050';
+const BASE_URL = import.meta.env.VITE_API_URL ?? 'https://mezgeb-3.vercel.app';
 
 function getToken() {
   return localStorage.getItem('token');
