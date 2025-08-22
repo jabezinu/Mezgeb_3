@@ -20,6 +20,7 @@ export default function Layout() {
             <NavLink to="/" end className={({isActive})=>`block px-3 py-2 rounded ${isActive? 'bg-gray-900 text-white':'hover:bg-gray-100'}`}>Overview</NavLink>
             <NavLink to="/clients" className={({isActive})=>`block px-3 py-2 rounded ${isActive? 'bg-gray-900 text-white':'hover:bg-gray-100'}`}>Clients</NavLink>
             <NavLink to="/leads" className={({isActive})=>`block px-3 py-2 rounded ${isActive? 'bg-gray-900 text-white':'hover:bg-gray-100'}`}>Leads</NavLink>
+            <NavLink to="/call-today" className={({isActive})=>`block px-3 py-2 rounded ${isActive? 'bg-gray-900 text-white':'hover:bg-gray-100'}`}>Call Today</NavLink>
           </nav>
         </aside>
         <main className="col-span-12 md:col-span-9 lg:col-span-10">

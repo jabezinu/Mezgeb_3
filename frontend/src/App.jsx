@@ -7,6 +7,7 @@ import Clients from './pages/Clients';
 import Leads from './pages/Leads';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import CallToday from './pages/CallToday';
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
             <Route index element={<Overview />} />
             <Route path="clients" element={<Clients />} />
             <Route path="leads" element={<Leads />} />
+            <Route path="call-today" element={<CallToday />} />
           </Route>
         </Route>
         <Route path="/login" element={<Login />} />
