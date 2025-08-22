@@ -1,8 +1,7 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
-import Overview from './pages/Overview';
 import Clients from './pages/Clients';
 import Leads from './pages/Leads';
 import Login from './pages/Login';
@@ -15,7 +14,7 @@ export default function App() {
       <Routes>
         <Route element={<ProtectedRoute />}> 
           <Route element={<Layout />}> 
-            <Route index element={<Overview />} />
+            <Route index element={<Navigate to="/clients" replace />} />
             <Route path="clients" element={<Clients />} />
             <Route path="leads" element={<Leads />} />
             <Route path="call-today" element={<CallToday />} />
