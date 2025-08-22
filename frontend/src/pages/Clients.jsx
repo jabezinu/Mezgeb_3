@@ -23,6 +23,7 @@ export default function Clients() {
   const [locating, setLocating] = useState(false);
   const [query, setQuery] = useState('');
   const [callModal, setCallModal] = useState({ open: false, phones: [], title: '' });
+  const [showDead, setShowDead] = useState(false);
 
   const statuses = useMemo(() => ['started','active','onaction','closed','dead'], []);
 
@@ -172,6 +173,16 @@ export default function Clients() {
       return fields.includes(q);
     });
   }, [items, query]);
+
+  const partitioned = useMemo(() => {
+    const alive = [];
+    const dead = [];
+    for (const c of filteredItems) {
+      if ((c.status || '').toLowerCase() === 'dead') dead.push(c);
+      else alive.push(c);
+    }
+    return { alive, dead };
+  }, [filteredItems]);
 
   function buildMapsLink(value) {
     if (!value) return null;
@@ -344,10 +355,10 @@ export default function Clients() {
         </div>
         <div className="divide-y">
           {loading && <div className="p-4">Loading...</div>}
-          {!loading && filteredItems.length === 0 && (
+          {!loading && partitioned.alive.length === 0 && partitioned.dead.length === 0 && (
             <div className="p-4">{items.length === 0 ? 'No clients yet.' : 'No matching clients.'}</div>
           )}
-          {filteredItems.map((c) => (
+          {partitioned.alive.map((c) => (
             <div key={c._id} className="p-4 flex items-start justify-between gap-4">
               <div>
                 <div className="font-medium">{c.businessName}</div>
@@ -388,6 +399,65 @@ export default function Clients() {
           ))}
         </div>
       </div>
+
+      {/* Dead clients collapsible section */}
+      {partitioned.dead.length > 0 && (
+        <div className="bg-white border rounded">
+          <div className="p-4 border-b flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Dead Clients</h2>
+            <button
+              type="button"
+              className="px-3 py-1.5 text-sm border rounded"
+              onClick={() => setShowDead(s => !s)}
+            >
+              {showDead ? 'Hide' : `Show (${partitioned.dead.length})`}
+            </button>
+          </div>
+          {showDead && (
+            <div className="divide-y">
+              {partitioned.dead.map((c) => (
+                <div key={c._id} className="p-4 flex items-start justify-between gap-4 opacity-70">
+                  <div>
+                    <div className="font-medium line-through">{c.businessName}</div>
+                    <div className="text-sm text-gray-600">
+                      Manager: {c.managerName} • Place: {c.place ? (
+                        <a href={buildMapsLink(c.place)} target="_blank" rel="noreferrer" className="text-blue-600 underline">map</a>
+                      ) : 'N/A'} • Status: {c.status}
+                    </div>
+                    <div className="text-sm text-gray-600">Phones: {(() => {
+                      const arr = Array.isArray(c.phoneNumbers) ? c.phoneNumbers : [];
+                      if (arr.length > 0) return arr.join(', ');
+                      if (c.phone) return c.phone;
+                      return 'N/A';
+                    })()}{typeof c.primaryPhoneIndex === 'number' && Array.isArray(c.phoneNumbers) && c.phoneNumbers.length > 0 ? ` (primary: ${c.primaryPhoneIndex})` : ''}</div>
+                    {c.deal != null && <div className="text-sm text-gray-600">Deal: {c.deal}</div>}
+                    {c.description && <div className="text-sm text-gray-600">{c.description}</div>}
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="px-3 py-1.5 text-sm border rounded" onClick={()=>startEdit(c)}>Edit</button>
+                    <button
+                      className="px-3 py-1.5 text-sm border rounded"
+                      onClick={() => {
+                        const phonesArr = Array.isArray(c.phoneNumbers) ? c.phoneNumbers.filter(Boolean) : [];
+                        const phones = phonesArr.length ? phonesArr : (c.phone ? [c.phone] : []);
+                        if (phones.length === 0) return;
+                        if (phones.length === 1) {
+                          window.location.href = `tel:${phones[0].trim()}`;
+                        } else {
+                          setCallModal({ open: true, phones, title: c.businessName || 'Select number' });
+                        }
+                      }}
+                    >
+                      Call
+                    </button>
+                    <button className="px-3 py-1.5 text-sm bg-red-600 text-white rounded" onClick={()=>onDelete(c._id)}>Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {callModal.open && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
