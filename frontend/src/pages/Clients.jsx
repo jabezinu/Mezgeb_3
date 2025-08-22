@@ -20,6 +20,7 @@ export default function Clients() {
   const [error, setError] = useState('');
   const [form, setForm] = useState(initialForm);
   const [editingId, setEditingId] = useState(null);
+  const [locating, setLocating] = useState(false);
 
   const statuses = useMemo(() => ['started','active','onaction','closed','dead'], []);
 
@@ -110,6 +111,36 @@ export default function Clients() {
     }
   }
 
+  function buildMapsLink(value) {
+    if (!value) return null;
+    const coordMatch = value.match(/^\s*-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?\s*$/);
+    if (coordMatch) {
+      const [lat, lng] = value.split(',').map(s => s.trim());
+      return `https://www.google.com/maps?q=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
+    }
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`;
+  }
+
+  function useCurrentLocation() {
+    if (!('geolocation' in navigator)) {
+      alert('Geolocation is not supported by this browser.');
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setForm(f => ({ ...f, place: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}` }));
+        setLocating(false);
+      },
+      (err) => {
+        alert(err?.message || 'Unable to get current location');
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-white border rounded p-4">
@@ -134,7 +165,17 @@ export default function Clients() {
           </div>
           <div>
             <label className="block text-sm mb-1">Place</label>
-            <input className="w-full border rounded px-3 py-2" value={form.place} onChange={e=>setForm(f=>({...f, place: e.target.value}))} required />
+            <div className="flex gap-2">
+              <input className="w-full border rounded px-3 py-2" value={form.place} onChange={e=>setForm(f=>({...f, place: e.target.value}))} required />
+              <button type="button" onClick={useCurrentLocation} disabled={locating} className="shrink-0 px-3 py-2 border rounded text-sm">
+                {locating ? 'Locating…' : 'Use Current'}
+              </button>
+            </div>
+            {form.place && (
+              <div className="mt-1 text-sm">
+                <a href={buildMapsLink(form.place)} target="_blank" rel="noreferrer" className="text-blue-600 underline">Open in Maps</a>
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm mb-1">First Visit</label>
@@ -176,7 +217,11 @@ export default function Clients() {
             <div key={c._id} className="p-4 flex items-start justify-between gap-4">
               <div>
                 <div className="font-medium">{c.businessName}</div>
-                <div className="text-sm text-gray-600">Manager: {c.managerName} • Place: {c.place} • Status: {c.status}</div>
+                <div className="text-sm text-gray-600">
+                  Manager: {c.managerName} • Place: {c.place ? (
+                    <a href={buildMapsLink(c.place)} target="_blank" rel="noreferrer" className="text-blue-600 underline">map</a>
+                  ) : 'N/A'} • Status: {c.status}
+                </div>
                 <div className="text-sm text-gray-600">Phones: {(c.phoneNumbers||[]).join(', ')} (primary: {c.primaryPhoneIndex})</div>
                 {c.deal != null && <div className="text-sm text-gray-600">Deal: {c.deal}</div>}
                 {c.description && <div className="text-sm text-gray-600">{c.description}</div>}
