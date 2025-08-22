@@ -47,6 +47,41 @@ export default function Clients() {
       .filter(Boolean);
   }
 
+  function hasContactPicker() {
+    return typeof navigator !== 'undefined' && 'contacts' in navigator && typeof navigator.contacts.select === 'function';
+  }
+
+  async function importFromContacts() {
+    try {
+      if (!hasContactPicker()) {
+        alert('Contact Picker is not supported in this browser. Try Chrome/Edge on Android over HTTPS.');
+        return;
+      }
+      const props = ['name', 'tel'];
+      const opts = { multiple: false }; // single selection
+      const contacts = await navigator.contacts.select(props, opts);
+      if (!contacts || contacts.length === 0) return;
+      const c = contacts[0];
+      const pickedName = Array.isArray(c.name) ? c.name.find(Boolean) || c.name.join(' ') : (c.name || '');
+      const pickedTels = Array.isArray(c.tel) ? c.tel : (c.phoneNumbers ? c.phoneNumbers : []);
+      const newPhones = sanitizePhones(pickedTels);
+      if (pickedName || newPhones.length) {
+        setForm(f => {
+          const merged = Array.from(new Set([...(f.phoneNumbers||[]), ...newPhones])).filter(Boolean);
+          return {
+            ...f,
+            managerName: pickedName || f.managerName,
+            phoneNumbers: merged.length ? merged : (f.phoneNumbers && f.phoneNumbers.length ? f.phoneNumbers : ['']),
+            primaryPhoneIndex: 0,
+          };
+        });
+      }
+    } catch (err) {
+      // User might have cancelled or permission denied
+      console.error('Contact pick failed', err);
+    }
+  }
+
   function startEdit(item) {
     setEditingId(item._id);
     setForm({
@@ -183,7 +218,21 @@ export default function Clients() {
             <input className="w-full border rounded px-3 py-2" value={form.managerName} onChange={e=>setForm(f=>({...f, managerName: e.target.value}))} required />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm mb-1">Phone Numbers</label>
+            <div className="flex items-center justify-between">
+              <label className="block text-sm mb-1">Phone Numbers</label>
+              <button
+                type="button"
+                onClick={importFromContacts}
+                className="px-3 py-1.5 border rounded text-sm disabled:opacity-50"
+                disabled={!hasContactPicker()}
+                title={hasContactPicker() ? 'Pick a contact to fill manager name and phone numbers' : 'Contact Picker not supported here. Try Chrome/Edge on Android over HTTPS or localhost.'}
+              >
+                Import from Contacts
+              </button>
+            </div>
+            {!hasContactPicker() && (
+              <div className="text-xs text-gray-500 mb-1">Contact Picker not supported in this browser. You can still enter the fields manually.</div>
+            )}
             <div className="space-y-2">
               {form.phoneNumbers.map((num, idx) => (
                 <div key={idx} className="flex gap-2 items-center">
