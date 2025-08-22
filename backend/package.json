@@ -2,11 +2,10 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "api/index.js",
+  "main": "index.js",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node api/index.js",
-    "seed": "node -e \"require('dotenv').config({path: '.env.example'}); require('./seed.js');\""
+    "start": "node api/index.js"
   },
   "keywords": [],
   "author": "",
