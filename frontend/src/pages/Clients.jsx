@@ -48,7 +48,7 @@ export default function Clients() {
 
   useEffect(() => { load(); }, []);
 
-  // If navigated with state { editId }, auto-open edit form
+  // If navigated  state { editId }, auto-open edit form
   useEffect(() => {
     const id = location.state && location.state.editId;
     if (id && items.length) {
