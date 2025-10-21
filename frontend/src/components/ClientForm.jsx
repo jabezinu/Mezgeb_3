@@ -130,55 +130,97 @@ export default function ClientForm({
     
     const contactName = contact.managerName || contact.businessName || 'New Contact';
     const phoneNumber = contact.phoneNumbers[contact.primaryPhoneIndex] || contact.phoneNumbers[0];
+    const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
     
     try {
-      // For Web Share API (most widely supported)
+      // First try: Web Share API with vCard (works on most mobile devices)
       if (navigator.share) {
-        const vcard = `BEGIN:VCARD
-VERSION:3.0
-FN:${contactName}
-${contact.businessName ? `ORG:${contact.businessName}\n` : ''}TEL;type=CELL;type=VOICE;waid=${phoneNumber.replace(/[^0-9]/g, '')}:${phoneNumber}
-${contact.description ? `NOTE:${contact.description.replace(/\n/g, '\\n')}\n` : ''}END:VCARD`;
-        
-        await navigator.share({
-          title: 'Save Contact',
-          text: `Add ${contactName} to your contacts`,
-          files: [new File([vcard], 'contact.vcf', { type: 'text/vcard' })]
-        });
-        return true;
-      }
-      // For Web Contact Picker API (Chrome/Edge on Android)
-      else if (navigator.contacts && navigator.contacts.create) {
-        const newContact = await navigator.contacts.create({
-          name: [contactName],
-          tel: contact.phoneNumbers,
-          organization: [contact.businessName],
-          note: contact.description
-        });
-        await newContact.save();
-        return true;
-      }
-      // For devices that support tel: links
-      else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(phoneNumber);
-        alert(`Phone number ${phoneNumber} has been copied to your clipboard. Please save it to your contacts manually.`);
-        return true;
+        try {
+          // Create a vCard with proper formatting
+          const vcard = [
+            'BEGIN:VCARD',
+            'VERSION:3.0',
+            `FN:${contactName}`,
+            contact.businessName ? `ORG:${contact.businessName}` : '',
+            `TEL;type=CELL;type=VOICE;type=pref:${phoneNumber}`,
+            contact.description ? `NOTE:${contact.description.replace(/[\r\n]+/g, ' ').trim()}` : '',
+            'END:VCARD'
+          ].filter(Boolean).join('\n');
+          
+          // Create a Blob with the vCard data
+          const blob = new Blob([vcard], { type: 'text/vcard' });
+          
+          // Try to share the contact
+          await navigator.share({
+            title: 'Save Contact',
+            text: `Add ${contactName} to your contacts`,
+            files: [new File([blob], `${contactName}.vcf`, { type: 'text/vcard' })]
+          });
+          
+          console.log('Contact shared successfully');
+          return true;
+        } catch (shareError) {
+          console.warn('Web Share API failed, trying alternative methods:', shareError);
+          // Continue to next method if sharing fails
+        }
       }
       
-      alert('Your device does not support saving contacts directly. Please save the phone number manually.');
-      return false;
-    } catch (e) {
-      console.warn('Failed to save contact to device:', e);
+      // Second try: Web Contact Picker API (Chrome/Edge on Android)
+      if (navigator.contacts && navigator.contacts.create) {
+        try {
+          const newContact = await navigator.contacts.create({
+            name: [contactName],
+            tel: contact.phoneNumbers,
+            organization: [contact.businessName].filter(Boolean),
+            note: contact.description
+          });
+          await newContact.save();
+          console.log('Contact saved via Contact Picker API');
+          return true;
+        } catch (contactError) {
+          console.warn('Contact Picker API failed:', contactError);
+        }
+      }
+      
+      // Third try: Create a contact link (works on many mobile browsers)
+      try {
+        const contactUrl = `data:text/vcard;charset=utf-8,${encodeURIComponent(
+          `BEGIN:VCARD\n` +
+          `VERSION:3.0\n` +
+          `FN:${contactName}\n` +
+          `TEL;type=CELL;type=VOICE:${phoneNumber}\n` +
+          (contact.businessName ? `ORG:${contact.businessName}\n` : '') +
+          (contact.description ? `NOTE:${contact.description.replace(/[\r\n]+/g, ' ').trim()}\n` : '') +
+          `END:VCARD`
+        )}`;
+        
+        // Try to open the contact in a new tab/window
+        const newWindow = window.open(contactUrl, '_blank');
+        if (newWindow) {
+          console.log('Opened contact in new window');
+          return true;
+        }
+      } catch (urlError) {
+        console.warn('Failed to open contact URL:', urlError);
+      }
+      
+      // Final fallback: Copy to clipboard
       if (navigator.clipboard) {
         try {
           await navigator.clipboard.writeText(phoneNumber);
-          alert(`Could not save contact automatically. Phone number ${phoneNumber} has been copied to your clipboard.`);
+          console.log('Phone number copied to clipboard');
           return true;
         } catch (clipboardError) {
           console.error('Failed to copy to clipboard:', clipboardError);
         }
       }
-      alert(`Could not save contact. Please save this number: ${phoneNumber}`);
+      
+      // If we get here, all methods failed
+      console.warn('All contact saving methods failed');
+      return false;
+      
+    } catch (e) {
+      console.error('Error in saveContactToDevice:', e);
       return false;
     }
   }
@@ -227,13 +269,21 @@ ${contact.description ? `NOTE:${contact.description.replace(/\n/g, '\\n')}\n` : 
       // For new clients, save to device contacts
       if (!editing) {
         try {
+          console.log('Attempting to save contact to device...');
           const contactSaved = await saveContactToDevice(payload);
-          if (!contactSaved) {
-            console.warn('Contact could not be saved to device');
+          if (contactSaved) {
+            console.log('Contact saved successfully to device');
+          } else {
+            console.warn('Contact could not be saved to device - no compatible method found');
+            // Provide user feedback with the phone number
+            const phoneNumber = payload.phoneNumbers[payload.primaryPhoneIndex] || payload.phoneNumbers[0];
+            alert(`Could not save contact automatically. Please save this number manually: ${phoneNumber}`);
           }
         } catch (contactError) {
-          console.warn('Failed to save contact:', contactError);
-          // Don't fail the entire operation if contact save fails
+          console.error('Error saving contact:', contactError);
+          // Provide user feedback
+          const phoneNumber = payload.phoneNumbers[payload.primaryPhoneIndex] || payload.phoneNumbers[0];
+          alert(`Error saving contact. Please save this number manually: ${phoneNumber}`);
         }
       }
       
