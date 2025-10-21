@@ -123,13 +123,34 @@ export default function ClientForm({
   }
 
   async function saveContactToDevice(contact) {
-    if (!contact.phoneNumbers || !contact.phoneNumbers.length) return false;
+    if (!contact.phoneNumbers || !contact.phoneNumbers.length) {
+      console.warn('No phone numbers provided to save to contacts');
+      return false;
+    }
+    
+    const contactName = contact.managerName || contact.businessName || 'New Contact';
+    const phoneNumber = contact.phoneNumbers[contact.primaryPhoneIndex] || contact.phoneNumbers[0];
     
     try {
+      // For Web Share API (most widely supported)
+      if (navigator.share) {
+        const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${contactName}
+${contact.businessName ? `ORG:${contact.businessName}\n` : ''}TEL;type=CELL;type=VOICE;waid=${phoneNumber.replace(/[^0-9]/g, '')}:${phoneNumber}
+${contact.description ? `NOTE:${contact.description.replace(/\n/g, '\\n')}\n` : ''}END:VCARD`;
+        
+        await navigator.share({
+          title: 'Save Contact',
+          text: `Add ${contactName} to your contacts`,
+          files: [new File([vcard], 'contact.vcf', { type: 'text/vcard' })]
+        });
+        return true;
+      }
       // For Web Contact Picker API (Chrome/Edge on Android)
-      if (navigator.contacts && navigator.contacts.create) {
+      else if (navigator.contacts && navigator.contacts.create) {
         const newContact = await navigator.contacts.create({
-          name: [contact.managerName || contact.businessName || 'New Contact'],
+          name: [contactName],
           tel: contact.phoneNumbers,
           organization: [contact.businessName],
           note: contact.description
@@ -137,37 +158,29 @@ export default function ClientForm({
         await newContact.save();
         return true;
       }
-      // For Web Share API (fallback)
-      else if (navigator.share) {
-        const vcard = `BEGIN:VCARD
-VERSION:3.0
-FN:${contact.managerName || contact.businessName || 'New Contact'}
-ORG:${contact.businessName || ''}
-TEL:${contact.phoneNumbers[0]}
-NOTE:${contact.description || ''}
-END:VCARD`;
-        
-        await navigator.share({
-          title: 'Save Contact',
-          text: `Add ${contact.managerName || contact.businessName} to contacts`,
-          files: [new File([vcard], 'contact.vcf', { type: 'text/vcard' })]
-        });
-        return true;
-      }
       // For devices that support tel: links
       else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(contact.phoneNumbers[0]);
-        alert(`Phone number ${contact.phoneNumbers[0]} copied to clipboard. Please save it to your contacts manually.`);
+        await navigator.clipboard.writeText(phoneNumber);
+        alert(`Phone number ${phoneNumber} has been copied to your clipboard. Please save it to your contacts manually.`);
         return true;
       }
+      
+      alert('Your device does not support saving contacts directly. Please save the phone number manually.');
+      return false;
     } catch (e) {
       console.warn('Failed to save contact to device:', e);
-      if (navigator.clipboard && contact.phoneNumbers[0]) {
-        await navigator.clipboard.writeText(contact.phoneNumbers[0]);
-        alert(`Could not save contact automatically. Phone number ${contact.phoneNumbers[0]} has been copied to your clipboard.`);
+      if (navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(phoneNumber);
+          alert(`Could not save contact automatically. Phone number ${phoneNumber} has been copied to your clipboard.`);
+          return true;
+        } catch (clipboardError) {
+          console.error('Failed to copy to clipboard:', clipboardError);
+        }
       }
+      alert(`Could not save contact. Please save this number: ${phoneNumber}`);
+      return false;
     }
-    return false;
   }
 
   function initiateCall(phoneNumber) {
@@ -211,12 +224,17 @@ END:VCARD`;
       // Save the client data
       const result = await onSubmit?.(payload);
       
-      // Save to device contacts
-      try {
-        await saveContactToDevice(payload);
-      } catch (contactError) {
-        console.warn('Failed to save contact:', contactError);
-        // Don't fail the entire operation if contact save fails
+      // For new clients, save to device contacts
+      if (!editing) {
+        try {
+          const contactSaved = await saveContactToDevice(payload);
+          if (!contactSaved) {
+            console.warn('Contact could not be saved to device');
+          }
+        } catch (contactError) {
+          console.warn('Failed to save contact:', contactError);
+          // Don't fail the entire operation if contact save fails
+        }
       }
       
       // If this is a "Create and Call" action, initiate the call
