@@ -166,9 +166,12 @@ export default function ClientForm({
           {form.phoneNumbers.map((num, idx) => (
             <div key={idx} className="flex gap-2 items-center">
               <input
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 className="w-full border rounded px-3 py-2"
                 value={num}
-                onChange={e=>setForm(f=>{
+                onChange={e => setForm(f => {
                   const arr = [...f.phoneNumbers];
                   arr[idx] = e.target.value;
                   return { ...f, phoneNumbers: arr };

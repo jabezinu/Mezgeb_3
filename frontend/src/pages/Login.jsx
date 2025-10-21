@@ -32,9 +32,11 @@ export default function Login() {
           <label className="block text-sm mb-1">Phone Number</label>
           <input
             type="tel"
+            inputMode="numeric"
+            pattern="[0-9]*"
             className="w-full border rounded px-3 py-2"
             value={form.phoneNumber}
-            onChange={(e)=>setForm(f=>({...f, phoneNumber: e.target.value}))}
+            onChange={(e) => setForm(f => ({...f, phoneNumber: e.target.value}))}
             required
           />
         </div>
