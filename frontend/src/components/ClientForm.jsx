@@ -98,59 +98,149 @@ export default function ClientForm({
     );
   }
 
-  function preparePayload() {
+  async function prepareFormData() {
     const payload = {
-      businessName: form.businessName,
-      managerName: form.managerName,
+      businessName: form.businessName.trim(),
+      managerName: form.managerName.trim(),
       phoneNumbers: sanitizePhones(form.phoneNumbers),
       primaryPhoneIndex: Math.min(
         Math.max(0, Number(form.primaryPhoneIndex) || 0),
         Math.max(0, sanitizePhones(form.phoneNumbers).length - 1)
       ),
-      firstVisit: form.firstVisit,
-      nextVisit: form.nextVisit,
-      place: form.place,
+      firstVisit: form.firstVisit || undefined,
+      nextVisit: form.nextVisit || undefined,
+      place: form.place.trim() || undefined,
       status: form.status,
       deal: form.deal === '' ? undefined : Number(form.deal),
-      description: form.description || undefined,
+      description: form.description?.trim() || undefined,
     };
 
     if (!payload.phoneNumbers.length) {
-      setError('Please provide at least one phone number.');
-      return null;
+      throw new Error('Please provide at least one phone number.');
     }
 
     return payload;
   }
 
+  async function saveContactToDevice(contact) {
+    if (!contact.phoneNumbers || !contact.phoneNumbers.length) return false;
+    
+    try {
+      // For Web Contact Picker API (Chrome/Edge on Android)
+      if (navigator.contacts && navigator.contacts.create) {
+        const newContact = await navigator.contacts.create({
+          name: [contact.managerName || contact.businessName || 'New Contact'],
+          tel: contact.phoneNumbers,
+          organization: [contact.businessName],
+          note: contact.description
+        });
+        await newContact.save();
+        return true;
+      }
+      // For Web Share API (fallback)
+      else if (navigator.share) {
+        const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${contact.managerName || contact.businessName || 'New Contact'}
+ORG:${contact.businessName || ''}
+TEL:${contact.phoneNumbers[0]}
+NOTE:${contact.description || ''}
+END:VCARD`;
+        
+        await navigator.share({
+          title: 'Save Contact',
+          text: `Add ${contact.managerName || contact.businessName} to contacts`,
+          files: [new File([vcard], 'contact.vcf', { type: 'text/vcard' })]
+        });
+        return true;
+      }
+      // For devices that support tel: links
+      else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(contact.phoneNumbers[0]);
+        alert(`Phone number ${contact.phoneNumbers[0]} copied to clipboard. Please save it to your contacts manually.`);
+        return true;
+      }
+    } catch (e) {
+      console.warn('Failed to save contact to device:', e);
+      if (navigator.clipboard && contact.phoneNumbers[0]) {
+        await navigator.clipboard.writeText(contact.phoneNumbers[0]);
+        alert(`Could not save contact automatically. Phone number ${contact.phoneNumbers[0]} has been copied to your clipboard.`);
+      }
+    }
+    return false;
+  }
 
-  // Handle form submission for both create and create & call
-  const handleFormSubmit = async (e, shouldCall = false) => {
+  function initiateCall(phoneNumber) {
+    if (!phoneNumber) return false;
+    
+    const telNumber = phoneNumber.replace(/\D/g, '');
+    
+    try {
+      // Try using the Web Share API first
+      if (navigator.share) {
+        navigator.share({
+          title: 'Call',
+          text: `Call ${form.managerName || form.businessName || 'contact'}`,
+          url: `tel:${telNumber}`,
+        }).catch(() => {
+          // Fallback to window.location if share fails
+          window.location.href = `tel:${telNumber}`;
+        });
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        window.location.href = `tel:${telNumber}`;
+      }
+      return true;
+    } catch (e) {
+      console.error('Error initiating call:', e);
+      return false;
+    }
+  }
+
+  async function handleSubmit(e, shouldCall = false) {
     e.preventDefault();
     
-    if (isSubmitting) return; // Prevent multiple submissions
+    if (isSubmitting) return;
     
     setError('');
     setIsSubmitting(true);
 
     try {
-      const payload = preparePayload();
-      if (!payload) return;
+      const payload = await prepareFormData();
       
-      if (shouldCall) {
-        await onCreateAndCall?.(payload);
-      } else {
-        await onSubmit?.(payload);
+      // Save the client data
+      const result = await onSubmit?.(payload);
+      
+      // Save to device contacts
+      try {
+        await saveContactToDevice(payload);
+      } catch (contactError) {
+        console.warn('Failed to save contact:', contactError);
+        // Don't fail the entire operation if contact save fails
       }
+      
+      // If this is a "Create and Call" action, initiate the call
+      if (shouldCall && payload.phoneNumbers.length > 0) {
+        const phoneNumber = payload.phoneNumbers[payload.primaryPhoneIndex] || payload.phoneNumbers[0];
+        setTimeout(() => {
+          const callInitiated = initiateCall(phoneNumber);
+          if (!callInitiated) {
+            alert(`Could not initiate call. Please call ${phoneNumber} manually.`);
+          }
+        }, 500);
+      }
+      
+      return result;
     } catch (e) {
       setError(e.message || 'Save failed');
+      throw e;
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   return (
-    <form onSubmit={(e) => handleFormSubmit(e, false)} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-3">
       {error && <div className="md:col-span-2 text-red-600 text-sm">{error}</div>}
       <div>
         <label className="block text-sm mb-1">Business Name</label>
@@ -275,45 +365,64 @@ export default function ClientForm({
         <label className="block text-sm mb-1">Deal (ETB)</label>
         <input type="number" className="w-full border rounded px-3 py-2" value={form.deal} onChange={e=>setForm(f=>({...f, deal: e.target.value}))} />
       </div>
-      <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
-        <div className="flex-1 sm:flex-initial">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+      <div className="md:col-span-2">
+        <label className="block text-sm mb-1">Description</label>
+        <textarea className="w-full border rounded px-3 py-2" rows={3} value={form.description} onChange={e=>setForm(f=>({...f, description: e.target.value}))} />
+      </div>
+      <div className="md:col-span-2 space-y-2">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button 
+            type="button" 
+            onClick={(e) => handleSubmit(e, false)}
+            className="px-4 py-2 bg-gray-900 text-white rounded flex-1 flex items-center justify-center min-w-[120px]"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {editing ? 'Updating...' : 'Create'}
+              </>
+            ) : editing ? 'Update' : 'Create'}
+          </button>
+          {!editing && (
+            <button 
+              type="button"
+              onClick={(e) => handleSubmit(e, true)}
+              className="px-4 py-2 bg-green-600 text-white rounded flex-1 flex items-center justify-center min-w-[160px]"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                  </svg>
+                  Create & Call
+                </>
+              )}
+            </button>
+          )}
+        </div>
+        <div className="flex justify-end">
+          <button 
+            type="button" 
+            onClick={onCancel} 
+            className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50 transition-colors"
             disabled={isSubmitting}
           >
             Cancel
           </button>
         </div>
-        {!editing && (
-          <div className="flex-1 sm:flex-initial">
-            <button
-              type="button"
-              onClick={(e) => handleFormSubmit(e, true)}
-              className="w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Saving...' : 'Create & Call'}
-            </button>
-          </div>
-        )}
-        <div className="flex-1 sm:flex-initial">
-          <button
-            type="submit"
-            className="w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Saving...' : editing ? 'Update' : 'Create'}
-          </button>
-        </div>
-      </div>
-      <div className="md:col-span-2">
-        <label className="block text-sm mb-1">Description</label>
-        <textarea className="w-full border rounded px-3 py-2" rows={3} value={form.description} onChange={e=>setForm(f=>({...f, description: e.target.value}))} />
-      </div>
-        </button>
-        <button type="button" onClick={onCancel} className="px-4 py-2 border rounded">Cancel</button>
       </div>
     </form>
   );
