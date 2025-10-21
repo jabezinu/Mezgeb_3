@@ -84,16 +84,30 @@ export default function Clients() {
     setShowForm(true);
   }
 
-  async function handleSubmit(payload) {
+  async function handleSubmit(payload, shouldCall = false) {
     try {
+      let client;
       if (editingId) {
-        await ClientsAPI.update(editingId, payload);
+        client = await ClientsAPI.update(editingId, payload);
       } else {
-        await ClientsAPI.create(payload);
+        client = await ClientsAPI.create(payload);
+        
+        // If this is a new client and we should call, initiate the call
+        if (shouldCall && client && client.phoneNumbers && client.phoneNumbers.length > 0) {
+          const primaryPhone = client.phoneNumbers[client.primaryPhoneIndex || 0];
+          if (primaryPhone) {
+            // Remove any non-numeric characters except + for international numbers
+            const phoneNumber = primaryPhone.replace(/[^0-9+]/g, '');
+            window.location.href = `tel:${phoneNumber}`;
+          }
+        }
       }
+      
       await load();
       setShowForm(false);
       setEditingId(null);
+      
+      return client;
     } catch (e) {
       // bubble up error by throwing so form can show it if desired
       throw e;
@@ -221,6 +235,14 @@ export default function Clients() {
             editing={Boolean(editingId)}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
+            onCreateAndCall={async (payload) => {
+              try {
+                await handleSubmit(payload, true);
+              } catch (e) {
+                // Error is already handled in the form
+                throw e;
+              }
+            }}
           />
         </div>
       )}
