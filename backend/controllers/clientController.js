@@ -32,9 +32,12 @@ export const createClient = async (req, res) => {
     const { phoneNumbers, phone, ...rest } = req.body;
 
     // Validate required fields
-    if (!rest.businessName || !rest.managerName) {
+    const requiredFields = ['businessName', 'managerName', 'firstVisit', 'nextVisit', 'place'];
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+    
+    if (missingFields.length > 0) {
       return res.status(400).json({ 
-        message: 'Business name and manager name are required' 
+        message: `Missing required fields: ${missingFields.join(', ')}`
       });
     }
 
@@ -70,7 +73,7 @@ export const createClient = async (req, res) => {
     }
 
     // Create client with processed data
-    const client = new Client({
+    const clientData = {
       ...rest,
       phoneNumbers: processedPhoneNumbers,
       // Ensure we don't save the old phone field
@@ -81,7 +84,17 @@ export const createClient = async (req, res) => {
         Math.max(0, Number(rest.primaryPhoneIndex) || 0),
         Math.max(0, processedPhoneNumbers.length - 1)
       )
-    });
+    };
+
+    // Convert string dates to Date objects if they're not already
+    if (clientData.firstVisit && typeof clientData.firstVisit === 'string') {
+      clientData.firstVisit = new Date(clientData.firstVisit);
+    }
+    if (clientData.nextVisit && typeof clientData.nextVisit === 'string') {
+      clientData.nextVisit = new Date(clientData.nextVisit);
+    }
+
+    const client = new Client(clientData);
     
     // Save the client with error handling
     try {
@@ -120,10 +133,36 @@ export const createClient = async (req, res) => {
     }
     
   } catch (err) {
-    console.error('Unexpected error in createClient:', err);
+    console.error('Unexpected error in createClient:', {
+      error: err.message,
+      stack: err.stack,
+      requestBody: req.body
+    });
+    
+    // Handle specific error types
+    if (err.name === 'ValidationError') {
+      const errors = Object.values(err.errors).map(e => e.message);
+      return res.status(400).json({ 
+        message: 'Validation failed',
+        errors
+      });
+    }
+    
+    // Handle duplicate key errors
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern)[0];
+      return res.status(409).json({ 
+        message: `${field} already exists`
+      });
+    }
+    
+    // Generic error response
     res.status(500).json({ 
       message: 'An unexpected error occurred while creating the client',
-      ...(process.env.NODE_ENV === 'development' ? { error: err.message } : {})
+      ...(process.env.NODE_ENV === 'development' ? { 
+        error: err.message,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      } : {})
     });
   }
 };
