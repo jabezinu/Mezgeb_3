@@ -236,7 +236,16 @@ export default function ClientForm({
       </div>
       <div>
         <label className="block text-sm mb-1">First Visit</label>
-        <input type="date" className="w-full border rounded px-3 py-2" value={form.firstVisit} onChange={e=>setForm(f=>({...f, firstVisit: e.target.value}))} required />
+        <div className="flex gap-2">
+          <input type="date" className="w-full border rounded px-3 py-2" value={form.firstVisit} onChange={e=>setForm(f=>({...f, firstVisit: e.target.value}))} required />
+          <button 
+            type="button" 
+            onClick={() => setForm(f => ({...f, firstVisit: new Date().toISOString().split('T')[0]}))}
+            className="shrink-0 px-3 py-2 border rounded text-sm whitespace-nowrap"
+          >
+            Today
+          </button>
+        </div>
       </div>
       <div>
         <label className="block text-sm mb-1">Next Visit</label>
