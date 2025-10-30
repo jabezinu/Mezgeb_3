@@ -289,3 +289,30 @@ export const getClientsByPeriod = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const getClientsByDate = async (req, res) => {
+  try {
+    const { date } = req.query;
+
+    if (!date) {
+      return res.status(400).json({ message: 'Date parameter is required' });
+    }
+
+    // Parse the date string and create start and end of day
+    const targetDate = new Date(date);
+    if (isNaN(targetDate.getTime())) {
+      return res.status(400).json({ message: 'Invalid date format. Use YYYY-MM-DD' });
+    }
+
+    const startOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+    const clients = await Client.find({
+      firstVisit: { $gte: startOfDay, $lt: endOfDay }
+    }).sort({ firstVisit: -1 }); // Most recent first
+
+    res.json(clients);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
