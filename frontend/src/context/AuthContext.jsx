@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
     setError(null);
     const res = await AuthAPI.login({ phoneNumber, password });
     localStorage.setItem('token', res.token);
-    setUser({ _id: res._id, phoneNumber: res.phoneNumber });
+    setUser({ _id: res._id, phoneNumber: res.phoneNumber, dailyGoal: res.dailyGoal });
     return res;
   }
 
@@ -38,7 +38,13 @@ export function AuthProvider({ children }) {
     setError(null);
     const res = await AuthAPI.register({ phoneNumber, password });
     localStorage.setItem('token', res.token);
-    setUser({ _id: res._id, phoneNumber: res.phoneNumber });
+    setUser({ _id: res._id, phoneNumber: res.phoneNumber, dailyGoal: res.dailyGoal });
+    return res;
+  }
+
+  async function updateDailyGoal(newGoal) {
+    const res = await AuthAPI.updateDailyGoal({ dailyGoal: newGoal });
+    setUser(prev => ({ ...prev, dailyGoal: res.dailyGoal }));
     return res;
   }
 
@@ -47,7 +53,7 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
-  const value = useMemo(() => ({ user, loading, error, login, register, logout }), [user, loading, error]);
+  const value = useMemo(() => ({ user, loading, error, login, register, logout, updateDailyGoal }), [user, loading, error]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

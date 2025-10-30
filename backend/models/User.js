@@ -13,6 +13,12 @@ const userSchema = new mongoose.Schema({
     required: true,
     select: false
   },
+  dailyGoal: {
+    type: Number,
+    default: 4,
+    min: 1,
+    max: 50
+  },
   createdAt: {
     type: Date,
     default: Date.now

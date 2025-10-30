@@ -74,11 +74,44 @@ export const authUser = async (req, res) => {
 export const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    
+
     if (user) {
       res.json({
         _id: user._id,
         phoneNumber: user.phoneNumber,
+        dailyGoal: user.dailyGoal,
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc    Update user daily goal
+// @route   PUT /api/auth/daily-goal
+// @access  Private
+export const updateDailyGoal = async (req, res) => {
+  try {
+    const { dailyGoal } = req.body;
+
+    if (typeof dailyGoal !== 'number' || dailyGoal < 1 || dailyGoal > 50) {
+      return res.status(400).json({ message: 'Daily goal must be a number between 1 and 50' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { dailyGoal },
+      { new: true }
+    );
+
+    if (user) {
+      res.json({
+        _id: user._id,
+        phoneNumber: user.phoneNumber,
+        dailyGoal: user.dailyGoal,
       });
     } else {
       res.status(404).json({ message: 'User not found' });

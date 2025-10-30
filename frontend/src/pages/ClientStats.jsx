@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClientsAPI } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
 export default function ClientStats() {
   const [stats, setStats] = useState(null);
@@ -11,11 +12,21 @@ export default function ClientStats() {
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [dateClients, setDateClients] = useState([]);
+  const [dailyGoal, setDailyGoal] = useState(4);
+  const [showGoalModal, setShowGoalModal] = useState(false);
+  const [newGoal, setNewGoal] = useState('');
   const navigate = useNavigate();
+  const { user, updateDailyGoal } = useAuth();
 
   useEffect(() => {
     loadStats();
   }, []);
+
+  useEffect(() => {
+    if (user?.dailyGoal) {
+      setDailyGoal(user.dailyGoal);
+    }
+  }, [user]);
 
   async function loadStats() {
     setLoading(true);
@@ -55,6 +66,22 @@ export default function ClientStats() {
     navigate(`/clients?editId=${clientId}`);
   }
 
+  async function handleUpdateGoal() {
+    const goal = parseInt(newGoal);
+    if (goal >= 1 && goal <= 50) {
+      try {
+        await updateDailyGoal(goal);
+        setDailyGoal(goal);
+        setShowGoalModal(false);
+        setNewGoal('');
+      } catch (e) {
+        alert('Failed to update daily goal: ' + e.message);
+      }
+    } else {
+      alert('Daily goal must be between 1 and 50');
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
@@ -84,7 +111,16 @@ export default function ClientStats() {
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Client Addition Statistics</h1>
-        <p className="text-gray-600">Track your client acquisition progress</p>
+        <p className="text-gray-600 mb-4">Track your client acquisition progress</p>
+        <button
+          onClick={() => {
+            setNewGoal(dailyGoal.toString());
+            setShowGoalModal(true);
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Set Daily Goal ({dailyGoal})
+        </button>
       </div>
 
       {stats && (
@@ -185,17 +221,17 @@ export default function ClientStats() {
                   let bgColor = 'bg-gray-100';
                   let textColor = 'text-gray-400';
                   let tooltip = '';
-                  if (dayData.count > 0 && dayData.count < 4) {
+                  if (dayData.count > 0 && dayData.count < dailyGoal) {
                     bgColor = 'bg-green-200';
                     textColor = 'text-green-800';
-                    tooltip = `${4 - dayData.count} remaining`;
-                  } else if (dayData.count === 4) {
+                    tooltip = `${dailyGoal - dayData.count} remaining`;
+                  } else if (dayData.count === dailyGoal) {
                     bgColor = 'bg-green-500';
                     textColor = 'text-white';
-                  } else if (dayData.count > 4) {
+                  } else if (dayData.count > dailyGoal) {
                     bgColor = 'bg-blue-500';
                     textColor = 'text-white';
-                    tooltip = `Exceeded by ${dayData.count - 4}`;
+                    tooltip = `Exceeded by ${dayData.count - dailyGoal}`;
                   }
                   days.push(
                     <div
@@ -209,7 +245,7 @@ export default function ClientStats() {
                       </div>
                       {dayData.count > 0 && (
                         <div className={`text-xs sm:text-sm font-bold ${textColor}`}>
-                          {dayData.count < 4 ? `-${4 - dayData.count}` : dayData.count === 4 ? '✓' : `+${dayData.count - 4}`}
+                          {dayData.count < dailyGoal ? `-${dailyGoal - dayData.count}` : dayData.count === dailyGoal ? '✓' : `+${dayData.count - dailyGoal}`}
                         </div>
                       )}
                       {/* Mobile tooltip - always visible on touch devices */}
@@ -242,6 +278,45 @@ export default function ClientStats() {
                           ))}
                         </div>
                       )}
+                
+                      {/* Daily Goal Modal */}
+                      {showGoalModal && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+                            <div className="p-6">
+                              <h3 className="text-xl font-semibold text-gray-900 mb-4">Set Daily Goal</h3>
+                              <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Number of clients per day (1-50)
+                                </label>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="50"
+                                  value={newGoal}
+                                  onChange={(e) => setNewGoal(e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="Enter your daily goal"
+                                />
+                              </div>
+                              <div className="flex gap-3">
+                                <button
+                                  onClick={handleUpdateGoal}
+                                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                  Update Goal
+                                </button>
+                                <button
+                                  onClick={() => setShowGoalModal(false)}
+                                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 }
@@ -249,7 +324,7 @@ export default function ClientStats() {
               })()}
             </div>
             <div className="mt-6 text-center text-sm text-gray-500 space-y-2">
-              <div>Hover over days to see details. Goal: 4 clients/day</div>
+              <div>Hover over days to see details. Goal: {dailyGoal} clients/day</div>
               <div className="flex justify-center items-center gap-6 flex-wrap">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
