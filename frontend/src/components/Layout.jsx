@@ -72,11 +72,17 @@ export default function Layout() {
             >
               Leads
             </NavLink>
-            <NavLink 
-              to="/call-today" 
+            <NavLink
+              to="/call-today"
               className={({isActive}) => `block px-4 py-3 rounded-lg ${isActive ? 'bg-gray-900 text-white' : 'hover:bg-gray-100'}`}
             >
               Call Today
+            </NavLink>
+            <NavLink
+              to="/stats"
+              className={({isActive}) => `block px-4 py-3 rounded-lg ${isActive ? 'bg-gray-900 text-white' : 'hover:bg-gray-100'}`}
+            >
+              Client Stats
             </NavLink>
           </nav>
         </aside>

@@ -211,3 +211,50 @@ export const deleteClient = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const getClientStats = async (req, res) => {
+  try {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Count clients added today
+    const todayCount = await Client.countDocuments({
+      firstVisit: { $gte: today }
+    });
+
+    // Count clients added this week (last 7 days)
+    const weekCount = await Client.countDocuments({
+      firstVisit: { $gte: weekAgo }
+    });
+
+    // Count clients added this month (last 30 days)
+    const monthCount = await Client.countDocuments({
+      firstVisit: { $gte: monthAgo }
+    });
+
+    // Get daily breakdown for the last 30 days
+    const dailyStats = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+      const nextDate = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+      const count = await Client.countDocuments({
+        firstVisit: { $gte: date, $lt: nextDate }
+      });
+      dailyStats.push({
+        date: date.toISOString().split('T')[0],
+        count
+      });
+    }
+
+    res.json({
+      today: todayCount,
+      week: weekCount,
+      month: monthCount,
+      daily: dailyStats
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

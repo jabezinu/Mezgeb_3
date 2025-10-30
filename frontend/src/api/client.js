@@ -38,6 +38,7 @@ export const ClientsAPI = {
   create: (payload) => apiRequest('/api/clients', { method: 'POST', body: payload }),
   update: (id, payload) => apiRequest(`/api/clients/${id}`, { method: 'PUT', body: payload }),
   remove: (id) => apiRequest(`/api/clients/${id}`, { method: 'DELETE' }),
+  getStats: () => apiRequest('/api/clients/stats/addition'),
 };
 
 export const LeadsAPI = {
