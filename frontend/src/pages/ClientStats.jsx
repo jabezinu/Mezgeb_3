@@ -156,7 +156,7 @@ export default function ClientStats() {
                         style={{ height: `${height}%`, minHeight: day.count > 0 ? '4px' : '0px' }}
                         title={`${day.date}: ${day.count} clients`}
                       ></div>
-                      <div className="text-xs text-gray-500 mt-1 transform -rotate-45 origin-top-left">
+                      <div className="text-xs text-gray-500 mt-1">
                         {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </div>
                     </div>
