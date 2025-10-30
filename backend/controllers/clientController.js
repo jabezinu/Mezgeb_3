@@ -258,3 +258,34 @@ export const getClientStats = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const getClientsByPeriod = async (req, res) => {
+  try {
+    const { period } = req.query;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let startDate;
+
+    switch (period) {
+      case 'today':
+        startDate = today;
+        break;
+      case 'week':
+        startDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'month':
+        startDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        return res.status(400).json({ message: 'Invalid period. Use: today, week, or month' });
+    }
+
+    const clients = await Client.find({
+      firstVisit: { $gte: startDate }
+    }).sort({ firstVisit: -1 }); // Most recent first
+
+    res.json(clients);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

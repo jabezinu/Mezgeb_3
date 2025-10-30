@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getClients, getClient, createClient, updateClient, deleteClient, getClientStats } from '../controllers/clientController.js';
+import { getClients, getClient, createClient, updateClient, deleteClient, getClientStats, getClientsByPeriod } from '../controllers/clientController.js';
 import { protect } from '../middleware/auth.js';
 
 const router = Router();
@@ -13,5 +13,6 @@ router.post('/', createClient);
 router.put('/:id', updateClient);
 router.delete('/:id', deleteClient);
 router.get('/stats/addition', getClientStats);
+router.get('/by-period', getClientsByPeriod);
 
 export default router;

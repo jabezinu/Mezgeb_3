@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ClientsAPI } from '../api/client';
 
 export default function ClientStats() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [periodClients, setPeriodClients] = useState([]);
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadStats();
@@ -21,6 +26,21 @@ export default function ClientStats() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handlePeriodClick(period) {
+    try {
+      const clients = await ClientsAPI.getByPeriod(period);
+      setPeriodClients(clients);
+      setSelectedPeriod(period);
+      setShowPeriodModal(true);
+    } catch (e) {
+      alert('Failed to load clients for this period: ' + e.message);
+    }
+  }
+
+  function handleClientClick(clientId) {
+    navigate(`/clients?editId=${clientId}`);
   }
 
   if (loading) {
@@ -59,7 +79,10 @@ export default function ClientStats() {
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white border rounded-lg shadow-sm p-6">
+            <button
+              onClick={() => handlePeriodClick('today')}
+              className="bg-white border rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow cursor-pointer text-left"
+            >
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -75,9 +98,12 @@ export default function ClientStats() {
                   <p className="text-sm text-gray-500">clients added</p>
                 </div>
               </div>
-            </div>
+            </button>
 
-            <div className="bg-white border rounded-lg shadow-sm p-6">
+            <button
+              onClick={() => handlePeriodClick('week')}
+              className="bg-white border rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow cursor-pointer text-left"
+            >
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
@@ -92,9 +118,12 @@ export default function ClientStats() {
                   <p className="text-sm text-gray-500">clients added</p>
                 </div>
               </div>
-            </div>
+            </button>
 
-            <div className="bg-white border rounded-lg shadow-sm p-6">
+            <button
+              onClick={() => handlePeriodClick('month')}
+              className="bg-white border rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow cursor-pointer text-left"
+            >
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
@@ -109,7 +138,7 @@ export default function ClientStats() {
                   <p className="text-sm text-gray-500">clients added</p>
                 </div>
               </div>
-            </div>
+            </button>
           </div>
 
           {/* Daily Chart */}
@@ -173,6 +202,88 @@ export default function ClientStats() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Period Clients Modal */}
+      {showPeriodModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="p-5 border-b flex items-start justify-between">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Clients Added {selectedPeriod === 'today' ? 'Today' : selectedPeriod === 'week' ? 'This Week' : 'This Month'}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  {periodClients.length} client{periodClients.length !== 1 ? 's' : ''} found
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPeriodModal(false)}
+                className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+                aria-label="Close"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              {periodClients.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No clients found for this period
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {periodClients.map((client) => (
+                    <div
+                      key={client._id}
+                      className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => handleClientClick(client._id)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-medium text-gray-900">{client.businessName || 'Unnamed Client'}</h4>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                              client.status === 'dead'
+                                ? 'bg-red-100 text-red-800'
+                                : client.status === 'active'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {client.status || 'No status'}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <div>Manager: {client.managerName || 'N/A'}</div>
+                            <div>Place: {client.place || 'N/A'}</div>
+                            <div>First Visit: {client.firstVisit ? new Date(client.firstVisit).toLocaleDateString() : 'N/A'}</div>
+                            {client.phoneNumbers && client.phoneNumbers.length > 0 && (
+                              <div>Phone: {client.phoneNumbers[0]}{client.phoneNumbers.length > 1 && ` (+${client.phoneNumbers.length - 1} more)`}</div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="px-5 py-3 bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={() => setShowPeriodModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
