@@ -19,6 +19,30 @@ const userSchema = new mongoose.Schema({
     min: 1,
     max: 50
   },
+  goalPeriods: [{
+    goal: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 50
+    },
+    startDate: {
+      type: Date,
+      required: true
+    },
+    endDate: {
+      type: Date,
+      required: true
+    },
+    isActive: {
+      type: Boolean,
+      default: true
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   createdAt: {
     type: Date,
     default: Date.now

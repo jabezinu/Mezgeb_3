@@ -31,6 +31,9 @@ export const AuthAPI = {
   register: (payload) => apiRequest('/api/auth/register', { method: 'POST', body: payload }),
   profile: () => apiRequest('/api/auth/profile'),
   updateDailyGoal: (payload) => apiRequest('/api/auth/daily-goal', { method: 'PUT', body: payload }),
+  addGoalPeriod: (payload) => apiRequest('/api/auth/goal-period', { method: 'POST', body: payload }),
+  updateGoalPeriod: (id, payload) => apiRequest(`/api/auth/goal-period/${id}`, { method: 'PUT', body: payload }),
+  deleteGoalPeriod: (id) => apiRequest(`/api/auth/goal-period/${id}`, { method: 'DELETE' }),
 };
 
 export const ClientsAPI = {

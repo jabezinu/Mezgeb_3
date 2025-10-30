@@ -112,10 +112,143 @@ export const updateDailyGoal = async (req, res) => {
         _id: user._id,
         phoneNumber: user.phoneNumber,
         dailyGoal: user.dailyGoal,
+        goalPeriods: user.goalPeriods,
       });
     } else {
       res.status(404).json({ message: 'User not found' });
     }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc    Add goal period
+// @route   POST /api/auth/goal-period
+// @access  Private
+export const addGoalPeriod = async (req, res) => {
+  try {
+    const { goal, startDate, endDate } = req.body;
+
+    if (typeof goal !== 'number' || goal < 1 || goal > 50) {
+      return res.status(400).json({ message: 'Goal must be a number between 1 and 50' });
+    }
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: 'Start date and end date are required' });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ message: 'Invalid date format' });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({ message: 'Start date must be before end date' });
+    }
+
+    // Check for overlapping periods
+    const user = await User.findById(req.user._id);
+    const overlapping = user.goalPeriods.some(period => {
+      const periodStart = new Date(period.startDate);
+      const periodEnd = new Date(period.endDate);
+      return (start <= periodEnd && end >= periodStart);
+    });
+
+    if (overlapping) {
+      return res.status(400).json({ message: 'Goal period overlaps with existing period' });
+    }
+
+    user.goalPeriods.push({
+      goal,
+      startDate: start,
+      endDate: end,
+      isActive: true
+    });
+
+    await user.save();
+
+    res.status(201).json({
+      _id: user._id,
+      phoneNumber: user.phoneNumber,
+      dailyGoal: user.dailyGoal,
+      goalPeriods: user.goalPeriods,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc    Update goal period
+// @route   PUT /api/auth/goal-period/:id
+// @access  Private
+export const updateGoalPeriod = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { goal, startDate, endDate, isActive } = req.body;
+
+    if (goal && (typeof goal !== 'number' || goal < 1 || goal > 50)) {
+      return res.status(400).json({ message: 'Goal must be a number between 1 and 50' });
+    }
+
+    const updateData = {};
+    if (goal !== undefined) updateData.goal = goal;
+    if (startDate !== undefined) updateData.startDate = new Date(startDate);
+    if (endDate !== undefined) updateData.endDate = new Date(endDate);
+    if (isActive !== undefined) updateData.isActive = isActive;
+
+    if (updateData.startDate && updateData.endDate && updateData.startDate >= updateData.endDate) {
+      return res.status(400).json({ message: 'Start date must be before end date' });
+    }
+
+    const user = await User.findOneAndUpdate(
+      { _id: req.user._id, 'goalPeriods._id': id },
+      { $set: { 'goalPeriods.$': { ...user.goalPeriods.id(id), ...updateData } } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'Goal period not found' });
+    }
+
+    res.json({
+      _id: user._id,
+      phoneNumber: user.phoneNumber,
+      dailyGoal: user.dailyGoal,
+      goalPeriods: user.goalPeriods,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc    Delete goal period
+// @route   DELETE /api/auth/goal-period/:id
+// @access  Private
+export const deleteGoalPeriod = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $pull: { goalPeriods: { _id: id } } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      _id: user._id,
+      phoneNumber: user.phoneNumber,
+      dailyGoal: user.dailyGoal,
+      goalPeriods: user.goalPeriods,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error' });

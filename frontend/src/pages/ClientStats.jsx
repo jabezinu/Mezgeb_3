@@ -15,10 +15,12 @@ export default function ClientStats() {
   const [dailyGoal, setDailyGoal] = useState(4);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [newGoal, setNewGoal] = useState('');
+  const [goalStartDate, setGoalStartDate] = useState('');
+  const [goalEndDate, setGoalEndDate] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const navigate = useNavigate();
-  const { user, updateDailyGoal } = useAuth();
+  const { user, updateDailyGoal, addGoalPeriod, updateGoalPeriod, deleteGoalPeriod } = useAuth();
 
   useEffect(() => {
     loadStats();
@@ -94,16 +96,38 @@ export default function ClientStats() {
     const goal = parseInt(newGoal);
     if (goal >= 1 && goal <= 50) {
       try {
-        await updateDailyGoal(goal);
-        setDailyGoal(goal);
+        if (goalStartDate && goalEndDate) {
+          // Create a new goal period
+          await addGoalPeriod(goal, goalStartDate, goalEndDate);
+        } else {
+          // Update the default daily goal
+          await updateDailyGoal(goal);
+          setDailyGoal(goal);
+        }
         setShowGoalModal(false);
         setNewGoal('');
+        setGoalStartDate('');
+        setGoalEndDate('');
       } catch (e) {
-        alert('Failed to update daily goal: ' + e.message);
+        alert('Failed to update goal: ' + e.message);
       }
     } else {
       alert('Daily goal must be between 1 and 50');
     }
+  }
+
+  function getGoalForDate(dateStr) {
+    if (!user?.goalPeriods) return dailyGoal;
+
+    const date = new Date(dateStr);
+    const activePeriod = user.goalPeriods.find(period => {
+      if (!period.isActive) return false;
+      const start = new Date(period.startDate);
+      const end = new Date(period.endDate);
+      return date >= start && date <= end;
+    });
+
+    return activePeriod ? activePeriod.goal : dailyGoal;
   }
 
   if (loading) {
@@ -136,15 +160,30 @@ export default function ClientStats() {
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Client Addition Statistics</h1>
         <p className="text-gray-600 mb-4">Track your client acquisition progress</p>
-        <button
-          onClick={() => {
-            setNewGoal(dailyGoal.toString());
-            setShowGoalModal(true);
-          }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Set Daily Goal ({dailyGoal})
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              setNewGoal(dailyGoal.toString());
+              setGoalStartDate('');
+              setGoalEndDate('');
+              setShowGoalModal(true);
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Set Default Goal ({dailyGoal})
+          </button>
+          <button
+            onClick={() => {
+              setNewGoal('');
+              setGoalStartDate('');
+              setGoalEndDate('');
+              setShowGoalModal(true);
+            }}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Add Goal Period
+          </button>
+        </div>
       </div>
 
       {stats && (
@@ -271,6 +310,7 @@ export default function ClientStats() {
                   const dayData = stats.daily.find(d => d.date === dateStr) || { count: 0 };
                   const isToday = currentDate.toDateString() === new Date().toDateString();
                   const isCurrentMonth = currentDate.getMonth() === currentMonth;
+                  const goalForDate = getGoalForDate(dateStr);
 
                   let bgColor = 'bg-gray-100';
                   let textColor = 'text-gray-400';
@@ -282,17 +322,17 @@ export default function ClientStats() {
                     ringColor = 'ring-2 ring-yellow-400 ring-offset-2';
                   }
 
-                  if (dayData.count > 0 && dayData.count < dailyGoal) {
+                  if (dayData.count > 0 && dayData.count < goalForDate) {
                     bgColor = 'bg-green-200';
                     textColor = 'text-green-800';
-                    tooltip = `${dailyGoal - dayData.count} remaining`;
-                  } else if (dayData.count === dailyGoal) {
+                    tooltip = `${goalForDate - dayData.count} remaining`;
+                  } else if (dayData.count === goalForDate) {
                     bgColor = 'bg-green-500';
                     textColor = 'text-white';
-                  } else if (dayData.count > dailyGoal) {
+                  } else if (dayData.count > goalForDate) {
                     bgColor = 'bg-blue-500';
                     textColor = 'text-white';
-                    tooltip = `Exceeded by ${dayData.count - dailyGoal}`;
+                    tooltip = `Exceeded by ${dayData.count - goalForDate}`;
                   }
 
                   days.push(
@@ -319,10 +359,10 @@ export default function ClientStats() {
                       {/* Goal indicator dots */}
                       {dayData.count > 0 && (
                         <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 flex gap-0.5">
-                          {dayData.count < 4 ? (
+                          {dayData.count < goalForDate ? (
                             // Orange pulsing dot for remaining
                             <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
-                          ) : dayData.count === 4 ? (
+                          ) : dayData.count === goalForDate ? (
                             // Green static dot for goal met
                             <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                           ) : (
@@ -330,11 +370,11 @@ export default function ClientStats() {
                             <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
                           )}
                           {/* Progress dots */}
-                          {Array.from({ length: Math.min(dayData.count, dailyGoal) }, (_, i) => (
+                          {Array.from({ length: Math.min(dayData.count, goalForDate) }, (_, i) => (
                             <div
                               key={i}
                               className={`w-1 h-1 rounded-full ${
-                                dayData.count >= dailyGoal ? 'bg-green-500' : 'bg-green-300'
+                                dayData.count >= goalForDate ? 'bg-green-500' : 'bg-green-300'
                               }`}
                             ></div>
                           ))}
@@ -348,7 +388,19 @@ export default function ClientStats() {
               })()}
             </div>
             <div className="mt-6 text-center text-sm text-gray-500 space-y-2">
-              <div>Hover over days to see details. Goal: {dailyGoal} clients/day</div>
+              <div>Hover over days to see details. Default goal: {dailyGoal} clients/day</div>
+              {user?.goalPeriods && user.goalPeriods.length > 0 && (
+                <div className="text-xs space-y-1">
+                  <div className="font-medium">Active Goal Periods:</div>
+                  {user.goalPeriods.filter(p => p.isActive).map((period, idx) => (
+                    <div key={idx} className="flex items-center justify-center gap-2">
+                      <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">
+                        {new Date(period.startDate).toLocaleDateString()} - {new Date(period.endDate).toLocaleDateString()}: {period.goal} clients/day
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="flex justify-center items-center gap-6 flex-wrap">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
@@ -365,13 +417,15 @@ export default function ClientStats() {
               </div>
             </div>
 
-            {/* Daily Goal Modal */}
+            {/* Goal Modal */}
             {showGoalModal && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                 <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Set Daily Goal</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {goalStartDate && goalEndDate ? 'Add Goal Period' : 'Set Default Daily Goal'}
+                      </h3>
                       <button
                         onClick={() => setShowGoalModal(false)}
                         className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
@@ -382,25 +436,68 @@ export default function ClientStats() {
                       </button>
                     </div>
 
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Number of clients per day
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="50"
-                        value={newGoal}
-                        onChange={(e) => setNewGoal(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-lg font-semibold"
-                        placeholder={dailyGoal.toString()}
-                      />
-                      <p className="text-xs text-gray-500 mt-2 text-center">
-                        Current goal: {dailyGoal} clients/day • Range: 1-50
-                      </p>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Number of clients per day
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={newGoal}
+                          onChange={(e) => setNewGoal(e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-lg font-semibold"
+                          placeholder={goalStartDate && goalEndDate ? "Enter goal" : dailyGoal.toString()}
+                        />
+                        <p className="text-xs text-gray-500 mt-2 text-center">
+                          Range: 1-50 clients per day
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Start Date
+                          </label>
+                          <input
+                            type="date"
+                            value={goalStartDate}
+                            onChange={(e) => setGoalStartDate(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            End Date
+                          </label>
+                          <input
+                            type="date"
+                            value={goalEndDate}
+                            onChange={(e) => setGoalEndDate(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
+
+                      {goalStartDate && goalEndDate && (
+                        <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                          <div className="font-medium">Goal Period Preview:</div>
+                          <div>{new Date(goalStartDate).toLocaleDateString()} - {new Date(goalEndDate).toLocaleDateString()}</div>
+                          <div>Goal: {newGoal || '?'} clients/day</div>
+                        </div>
+                      )}
+
+                      {!goalStartDate && !goalEndDate && (
+                        <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                          <div className="font-medium">Default Goal:</div>
+                          <div>This will be your default goal for all days without specific periods.</div>
+                          <div>Current: {dailyGoal} clients/day</div>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 mt-6">
                       <button
                         onClick={() => setShowGoalModal(false)}
                         className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
@@ -410,8 +507,9 @@ export default function ClientStats() {
                       <button
                         onClick={handleUpdateGoal}
                         className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                        disabled={!newGoal || (goalStartDate && goalEndDate && (!goalStartDate || !goalEndDate || new Date(goalStartDate) >= new Date(goalEndDate)))}
                       >
-                        Update Goal
+                        {goalStartDate && goalEndDate ? 'Add Goal Period' : 'Update Default Goal'}
                       </button>
                     </div>
                   </div>
