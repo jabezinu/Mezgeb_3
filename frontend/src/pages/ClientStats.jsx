@@ -209,7 +209,7 @@ export default function ClientStats() {
                       </div>
                       {dayData.count > 0 && (
                         <div className={`text-xs sm:text-sm font-bold ${textColor}`}>
-                          {dayData.count}
+                          {dayData.count < 4 ? `-${4 - dayData.count}` : dayData.count === 4 ? '✓' : `+${dayData.count - 4}`}
                         </div>
                       )}
                       {/* Mobile tooltip - always visible on touch devices */}
