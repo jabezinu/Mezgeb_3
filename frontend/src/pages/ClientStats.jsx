@@ -200,7 +200,7 @@ export default function ClientStats() {
                   days.push(
                     <div
                       key={dateStr}
-                      className={`h-12 sm:h-16 ${bgColor} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-md`}
+                      className={`h-12 sm:h-16 ${bgColor} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-md relative group`}
                       title={tooltip}
                       onClick={() => handleDateClick(dateStr)}
                     >
@@ -212,14 +212,58 @@ export default function ClientStats() {
                           {dayData.count}
                         </div>
                       )}
+                      {/* Mobile tooltip - always visible on touch devices */}
+                      {tooltip && (
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 whitespace-nowrap md:hidden">
+                          {tooltip}
+                        </div>
+                      )}
+                      {/* Goal indicator dots */}
+                      {dayData.count > 0 && (
+                        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 flex gap-0.5">
+                          {dayData.count < 4 ? (
+                            // Orange pulsing dot for remaining
+                            <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+                          ) : dayData.count === 4 ? (
+                            // Green static dot for goal met
+                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                          ) : (
+                            // Blue bouncing dot for exceeded
+                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                          )}
+                          {/* Progress dots */}
+                          {Array.from({ length: Math.min(dayData.count, 4) }, (_, i) => (
+                            <div
+                              key={i}
+                              className={`w-1 h-1 rounded-full ${
+                                dayData.count >= 4 ? 'bg-green-500' : 'bg-green-300'
+                              }`}
+                            ></div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 }
                 return days;
               })()}
             </div>
-            <div className="mt-4 text-center text-sm text-gray-500">
-              Hover over days to see details. Goal: 4 clients/day
+            <div className="mt-6 text-center text-sm text-gray-500 space-y-2">
+              <div>Hover over days to see details. Goal: 4 clients/day</div>
+              <div className="flex justify-center items-center gap-6 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
+                  <span>Remaining to goal</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                  <span>Goal achieved</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-400 rounded-full animate-bounce"></div>
+                  <span>Goal exceeded</span>
+                </div>
+              </div>
             </div>
           </div>
 
