@@ -218,9 +218,17 @@ export default function ClientStats() {
                   date.setDate(startDate.getDate() + i);
                   const dateStr = date.toISOString().split('T')[0];
                   const dayData = stats.daily.find(d => d.date === dateStr) || { count: 0 };
+                  const isToday = date.toDateString() === new Date().toDateString();
+
                   let bgColor = 'bg-gray-100';
                   let textColor = 'text-gray-400';
                   let tooltip = '';
+                  let ringColor = '';
+
+                  if (isToday) {
+                    ringColor = 'ring-2 ring-yellow-400 ring-offset-2';
+                  }
+
                   if (dayData.count > 0 && dayData.count < dailyGoal) {
                     bgColor = 'bg-green-200';
                     textColor = 'text-green-800';
@@ -236,7 +244,7 @@ export default function ClientStats() {
                   days.push(
                     <div
                       key={dateStr}
-                      className={`h-12 sm:h-16 ${bgColor} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-md relative group`}
+                      className={`h-12 sm:h-16 ${bgColor} ${ringColor} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-md relative group`}
                       title={tooltip}
                       onClick={() => handleDateClick(dateStr)}
                     >
@@ -268,11 +276,11 @@ export default function ClientStats() {
                             <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
                           )}
                           {/* Progress dots */}
-                          {Array.from({ length: Math.min(dayData.count, 4) }, (_, i) => (
+                          {Array.from({ length: Math.min(dayData.count, dailyGoal) }, (_, i) => (
                             <div
                               key={i}
                               className={`w-1 h-1 rounded-full ${
-                                dayData.count >= 4 ? 'bg-green-500' : 'bg-green-300'
+                                dayData.count >= dailyGoal ? 'bg-green-500' : 'bg-green-300'
                               }`}
                             ></div>
                           ))}
