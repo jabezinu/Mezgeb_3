@@ -15,6 +15,8 @@ export default function ClientStats() {
   const [dailyGoal, setDailyGoal] = useState(4);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [newGoal, setNewGoal] = useState('');
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const navigate = useNavigate();
   const { user, updateDailyGoal } = useAuth();
 
@@ -60,6 +62,28 @@ export default function ClientStats() {
     } catch (e) {
       alert('Failed to load clients for this date: ' + e.message);
     }
+  }
+
+  function navigateMonth(direction) {
+    let newMonth = currentMonth + direction;
+    let newYear = currentYear;
+
+    if (newMonth < 0) {
+      newMonth = 11;
+      newYear -= 1;
+    } else if (newMonth > 11) {
+      newMonth = 0;
+      newYear += 1;
+    }
+
+    setCurrentMonth(newMonth);
+    setCurrentYear(newYear);
+  }
+
+  function goToToday() {
+    const today = new Date();
+    setCurrentMonth(today.getMonth());
+    setCurrentYear(today.getFullYear());
   }
 
   function handleClientClick(clientId) {
@@ -191,7 +215,38 @@ export default function ClientStats() {
 
           {/* Daily Calendar */}
           <div className="bg-white border rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Daily Additions (Last 30 Days)</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Daily Additions ({new Date(currentYear, currentMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })})
+              </h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => navigateMonth(-1)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Previous month"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={goToToday}
+                  className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  title="Go to today"
+                >
+                  Today
+                </button>
+                <button
+                  onClick={() => navigateMonth(1)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Next month"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
             <div className="grid grid-cols-7 gap-2 sm:gap-4">
               {/* Day headers */}
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
@@ -201,29 +256,27 @@ export default function ClientStats() {
               ))}
               {/* Calendar days */}
               {(() => {
-                const today = new Date();
-                const startDate = new Date(today);
-                startDate.setDate(today.getDate() - 29);
-                const startDay = startDate.getDay();
+                const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+                const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+                const startDate = new Date(firstDayOfMonth);
+                startDate.setDate(firstDayOfMonth.getDate() - firstDayOfMonth.getDay());
+                const endDate = new Date(lastDayOfMonth);
+                endDate.setDate(lastDayOfMonth.getDate() + (6 - lastDayOfMonth.getDay()));
+
                 const days = [];
+                const currentDate = new Date(startDate);
 
-                // Add empty cells for days before start
-                for (let i = 0; i < startDay; i++) {
-                  days.push(<div key={`empty-${i}`} className="h-12 sm:h-16"></div>);
-                }
-
-                // Add the 30 days
-                for (let i = 0; i < 30; i++) {
-                  const date = new Date(startDate);
-                  date.setDate(startDate.getDate() + i);
-                  const dateStr = date.toISOString().split('T')[0];
+                while (currentDate <= endDate) {
+                  const dateStr = currentDate.toISOString().split('T')[0];
                   const dayData = stats.daily.find(d => d.date === dateStr) || { count: 0 };
-                  const isToday = date.toDateString() === new Date().toDateString();
+                  const isToday = currentDate.toDateString() === new Date().toDateString();
+                  const isCurrentMonth = currentDate.getMonth() === currentMonth;
 
                   let bgColor = 'bg-gray-100';
                   let textColor = 'text-gray-400';
                   let tooltip = '';
                   let ringColor = '';
+                  let opacity = isCurrentMonth ? '' : 'opacity-30';
 
                   if (isToday) {
                     ringColor = 'ring-2 ring-yellow-400 ring-offset-2';
@@ -241,15 +294,16 @@ export default function ClientStats() {
                     textColor = 'text-white';
                     tooltip = `Exceeded by ${dayData.count - dailyGoal}`;
                   }
+
                   days.push(
                     <div
                       key={dateStr}
-                      className={`h-12 sm:h-16 ${bgColor} ${ringColor} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-md relative group`}
+                      className={`h-12 sm:h-16 ${bgColor} ${ringColor} ${opacity} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-md relative group`}
                       title={tooltip}
                       onClick={() => handleDateClick(dateStr)}
                     >
                       <div className={`text-xs sm:text-sm font-medium ${textColor}`}>
-                        {date.getDate()}
+                        {currentDate.getDate()}
                       </div>
                       {dayData.count > 0 && (
                         <div className={`text-xs sm:text-sm font-bold ${textColor}`}>
@@ -286,62 +340,9 @@ export default function ClientStats() {
                           ))}
                         </div>
                       )}
-                
-                      {/* Daily Goal Modal */}
-                      {showGoalModal && (
-                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-                            <div className="p-6">
-                              <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-semibold text-gray-900">Set Daily Goal</h3>
-                                <button
-                                  onClick={() => setShowGoalModal(false)}
-                                  className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-                                >
-                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
-                                </button>
-                              </div>
-                
-                              <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  Number of clients per day
-                                </label>
-                                <input
-                                  type="number"
-                                  min="1"
-                                  max="50"
-                                  value={newGoal}
-                                  onChange={(e) => setNewGoal(e.target.value)}
-                                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-lg font-semibold"
-                                  placeholder={dailyGoal.toString()}
-                                />
-                                <p className="text-xs text-gray-500 mt-2 text-center">
-                                  Current goal: {dailyGoal} clients/day • Range: 1-50
-                                </p>
-                              </div>
-                
-                              <div className="flex gap-3">
-                                <button
-                                  onClick={() => setShowGoalModal(false)}
-                                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  onClick={handleUpdateGoal}
-                                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                                >
-                                  Update Goal
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   );
+                  currentDate.setDate(currentDate.getDate() + 1);
                 }
                 return days;
               })()}
@@ -363,6 +364,60 @@ export default function ClientStats() {
                 </div>
               </div>
             </div>
+
+            {/* Daily Goal Modal */}
+            {showGoalModal && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Set Daily Goal</h3>
+                      <button
+                        onClick={() => setShowGoalModal(false)}
+                        className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Number of clients per day
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={newGoal}
+                        onChange={(e) => setNewGoal(e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-lg font-semibold"
+                        placeholder={dailyGoal.toString()}
+                      />
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        Current goal: {dailyGoal} clients/day • Range: 1-50
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowGoalModal(false)}
+                        className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleUpdateGoal}
+                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                      >
+                        Update Goal
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Selected Date Clients */}
