@@ -17,6 +17,9 @@ export default function ClientStats() {
   const [newGoal, setNewGoal] = useState('');
   const [goalStartDate, setGoalStartDate] = useState('');
   const [goalEndDate, setGoalEndDate] = useState('');
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const [conflictingPeriod, setConflictingPeriod] = useState(null);
+  const [pendingGoalData, setPendingGoalData] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const navigate = useNavigate();
@@ -108,22 +111,12 @@ export default function ClientStats() {
           });
 
           if (overlappingPeriod) {
-            // Show professional conflict resolution dialog
-            const shouldReplace = confirm(
-              `This goal period conflicts with an existing period:\n\n` +
-              `Existing: ${new Date(overlappingPeriod.startDate).toLocaleDateString()} - ${new Date(overlappingPeriod.endDate).toLocaleDateString()} (${overlappingPeriod.goal} clients/day)\n\n` +
-              `New: ${start.toLocaleDateString()} - ${end.toLocaleDateString()} (${goal} clients/day)\n\n` +
-              `Would you like to replace the existing period with this new one?`
-            );
-
-            if (shouldReplace) {
-              // Delete the overlapping period first
-              await deleteGoalPeriod(overlappingPeriod._id);
-              // Then create the new one
-              await addGoalPeriod(goal, goalStartDate, goalEndDate);
-            } else {
-              return; // User cancelled
-            }
+            // Show beautiful conflict resolution modal instead of ugly confirm
+            setConflictingPeriod(overlappingPeriod);
+            setPendingGoalData({ goal, startDate: goalStartDate, endDate: goalEndDate });
+            setShowConflictModal(true);
+            setShowGoalModal(false);
+            return;
           } else {
             // No overlap, create normally
             await addGoalPeriod(goal, goalStartDate, goalEndDate);
@@ -142,6 +135,35 @@ export default function ClientStats() {
       }
     } else {
       alert('Daily goal must be between 1 and 50');
+    }
+  }
+
+  async function handleConflictResolution(replace) {
+    if (!replace || !pendingGoalData || !conflictingPeriod) {
+      setShowConflictModal(false);
+      setConflictingPeriod(null);
+      setPendingGoalData(null);
+      return;
+    }
+
+    try {
+      // Delete the overlapping period first
+      await deleteGoalPeriod(conflictingPeriod._id);
+      // Then create the new one
+      await addGoalPeriod(pendingGoalData.goal, pendingGoalData.startDate, pendingGoalData.endDate);
+
+      // Reset everything
+      setShowConflictModal(false);
+      setConflictingPeriod(null);
+      setPendingGoalData(null);
+      setNewGoal('');
+      setGoalStartDate('');
+      setGoalEndDate('');
+    } catch (e) {
+      alert('Failed to update goal periods: ' + e.message);
+      setShowConflictModal(false);
+      setConflictingPeriod(null);
+      setPendingGoalData(null);
     }
   }
 
@@ -539,6 +561,76 @@ export default function ClientStats() {
                         disabled={!newGoal || (goalStartDate && goalEndDate && (!goalStartDate || !goalEndDate || new Date(goalStartDate) >= new Date(goalEndDate)))}
                       >
                         {goalStartDate && goalEndDate ? 'Add Goal Period' : 'Update Default Goal'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Conflict Resolution Modal */}
+            {showConflictModal && conflictingPeriod && pendingGoalData && (
+              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+                  <div className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Goal Period Conflict</h3>
+                        <p className="text-sm text-gray-600">Two goal periods cannot overlap</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <span className="text-sm font-medium text-red-800">Existing Period</span>
+                        </div>
+                        <div className="text-sm text-red-700 ml-4">
+                          <div className="font-medium">
+                            {new Date(conflictingPeriod.startDate).toLocaleDateString()} - {new Date(conflictingPeriod.endDate).toLocaleDateString()}
+                          </div>
+                          <div>Goal: {conflictingPeriod.goal} clients/day</div>
+                        </div>
+                      </div>
+
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-sm font-medium text-green-800">New Period</span>
+                        </div>
+                        <div className="text-sm text-green-700 ml-4">
+                          <div className="font-medium">
+                            {new Date(pendingGoalData.startDate).toLocaleDateString()} - {new Date(pendingGoalData.endDate).toLocaleDateString()}
+                          </div>
+                          <div>Goal: {pendingGoalData.goal} clients/day</div>
+                        </div>
+                      </div>
+
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <div className="text-sm text-blue-800">
+                          <strong>What would you like to do?</strong> The new period overlaps with the existing one. You can replace the existing period with the new one, or cancel this action.
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 mt-6">
+                      <button
+                        onClick={() => handleConflictResolution(false)}
+                        className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                      >
+                        Keep Existing
+                      </button>
+                      <button
+                        onClick={() => handleConflictResolution(true)}
+                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                      >
+                        Replace with New
                       </button>
                     </div>
                   </div>
