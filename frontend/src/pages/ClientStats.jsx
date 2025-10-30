@@ -281,37 +281,61 @@ export default function ClientStats() {
                 
                       {/* Daily Goal Modal */}
                       {showGoalModal && (
-                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-                            <div className="p-6">
-                              <h3 className="text-xl font-semibold text-gray-900 mb-4">Set Daily Goal</h3>
-                              <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  Number of clients per day (1-50)
-                                </label>
-                                <input
-                                  type="number"
-                                  min="1"
-                                  max="50"
-                                  value={newGoal}
-                                  onChange={(e) => setNewGoal(e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                  placeholder="Enter your daily goal"
-                                />
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg transform transition-all duration-300 scale-100">
+                            <div className="p-8">
+                              <div className="text-center mb-6">
+                                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                  </svg>
+                                </div>
+                                <h3 className="text-2xl font-bold text-gray-900 mb-2">Set Your Daily Goal</h3>
+                                <p className="text-gray-600">How many clients do you want to add each day?</p>
                               </div>
-                              <div className="flex gap-3">
-                                <button
-                                  onClick={handleUpdateGoal}
-                                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                >
-                                  Update Goal
-                                </button>
+                
+                              <div className="mb-8">
+                                <label className="block text-sm font-semibold text-gray-700 mb-3 text-center">
+                                  Target Clients Per Day
+                                </label>
+                                <div className="relative">
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    max="50"
+                                    value={newGoal}
+                                    onChange={(e) => setNewGoal(e.target.value)}
+                                    className="w-full text-center text-3xl font-bold py-4 px-6 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                                    placeholder="4"
+                                  />
+                                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
+                                    clients/day
+                                  </div>
+                                </div>
+                                <div className="text-center mt-3 text-sm text-gray-500">
+                                  Range: 1 - 50 clients
+                                </div>
+                              </div>
+                
+                              <div className="flex gap-4">
                                 <button
                                   onClick={() => setShowGoalModal(false)}
-                                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                                  className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium"
                                 >
                                   Cancel
                                 </button>
+                                <button
+                                  onClick={handleUpdateGoal}
+                                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                >
+                                  Set Goal
+                                </button>
+                              </div>
+                
+                              <div className="mt-6 text-center">
+                                <div className="text-xs text-gray-500">
+                                  Current goal: <span className="font-semibold text-blue-600">{dailyGoal} clients/day</span>
+                                </div>
                               </div>
                             </div>
                           </div>
