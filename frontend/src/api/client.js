@@ -40,6 +40,7 @@ export const ClientsAPI = {
   remove: (id) => apiRequest(`/api/clients/${id}`, { method: 'DELETE' }),
   getStats: () => apiRequest('/api/clients/stats/addition'),
   getByPeriod: (period) => apiRequest(`/api/clients/by-period?period=${period}`),
+  getByDate: (date) => apiRequest(`/api/clients/by-date?date=${date}`),
 };
 
 export const LeadsAPI = {

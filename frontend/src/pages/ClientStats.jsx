@@ -9,6 +9,8 @@ export default function ClientStats() {
   const [periodClients, setPeriodClients] = useState([]);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('');
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [dateClients, setDateClients] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +38,16 @@ export default function ClientStats() {
       setShowPeriodModal(true);
     } catch (e) {
       alert('Failed to load clients for this period: ' + e.message);
+    }
+  }
+
+  async function handleDateClick(dateStr) {
+    try {
+      const clients = await ClientsAPI.getByDate(dateStr);
+      setDateClients(clients);
+      setSelectedDate(dateStr);
+    } catch (e) {
+      alert('Failed to load clients for this date: ' + e.message);
     }
   }
 
@@ -190,6 +202,7 @@ export default function ClientStats() {
                       key={dateStr}
                       className={`h-12 sm:h-16 ${bgColor} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-md`}
                       title={tooltip}
+                      onClick={() => handleDateClick(dateStr)}
                     >
                       <div className={`text-xs sm:text-sm font-medium ${textColor}`}>
                         {date.getDate()}
@@ -209,6 +222,65 @@ export default function ClientStats() {
               Hover over days to see details. Goal: 4 clients/day
             </div>
           </div>
+
+          {/* Selected Date Clients */}
+          {selectedDate && (
+            <div className="bg-white border rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Clients Added on {new Date(selectedDate).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </h3>
+              {dateClients.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No clients added on this date
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {dateClients.map((client) => (
+                    <div
+                      key={client._id}
+                      className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => handleClientClick(client._id)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-medium text-gray-900">{client.businessName || 'Unnamed Client'}</h4>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                              client.status === 'dead'
+                                ? 'bg-red-100 text-red-800'
+                                : client.status === 'active'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {client.status || 'No status'}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <div>Manager: {client.managerName || 'N/A'}</div>
+                            <div>Place: {client.place || 'N/A'}</div>
+                            <div>First Visit: {client.firstVisit ? new Date(client.firstVisit).toLocaleDateString() : 'N/A'}</div>
+                            {client.phoneNumbers && client.phoneNumbers.length > 0 && (
+                              <div>Phone: {client.phoneNumbers[0]}{client.phoneNumbers.length > 1 && ` (+${client.phoneNumbers.length - 1} more)`}</div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Detailed Table */}
           <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
