@@ -8,11 +8,11 @@ const router = Router();
 router.use(protect);
 
 router.get('/', getClients);
+router.get('/stats/addition', getClientStats);
+router.get('/by-period', getClientsByPeriod);
 router.get('/:id', getClient);
 router.post('/', createClient);
 router.put('/:id', updateClient);
 router.delete('/:id', deleteClient);
-router.get('/stats/addition', getClientStats);
-router.get('/by-period', getClientsByPeriod);
 
 export default router;
