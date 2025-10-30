@@ -149,12 +149,22 @@ export default function ClientStats() {
                 {stats.daily.map((day, index) => {
                   const maxCount = Math.max(...stats.daily.map(d => d.count));
                   const height = maxCount > 0 ? (day.count / maxCount) * 100 : 0;
+                  let bgColor = 'bg-gray-300';
+                  let excess = '';
+                  if (day.count > 0 && day.count < 4) {
+                    bgColor = 'bg-green-300';
+                  } else if (day.count === 4) {
+                    bgColor = 'bg-green-600';
+                  } else if (day.count > 4) {
+                    bgColor = 'bg-blue-500';
+                    excess = ` (exceeded by ${day.count - 4})`;
+                  }
                   return (
                     <div key={index} className="flex-1 flex flex-col items-center">
                       <div
-                        className="w-full bg-blue-500 rounded-t transition-all duration-300 hover:bg-blue-600"
+                        className={`w-full ${bgColor} rounded-t transition-all duration-300 hover:opacity-80`}
                         style={{ height: `${height}%`, minHeight: day.count > 0 ? '4px' : '0px' }}
-                        title={`${day.date}: ${day.count} clients`}
+                        title={`${day.date}: ${day.count} clients${excess}`}
                       ></div>
                       <div className="text-xs text-gray-500 mt-1">
                         {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
