@@ -141,41 +141,72 @@ export default function ClientStats() {
             </button>
           </div>
 
-          {/* Daily Chart */}
+          {/* Daily Calendar */}
           <div className="bg-white border rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Daily Additions (Last 30 Days)</h2>
-            <div className="h-64">
-              <div className="flex items-end space-x-1 h-full">
-                {stats.daily.map((day, index) => {
-                  const maxCount = Math.max(...stats.daily.map(d => d.count));
-                  const height = maxCount > 0 ? (day.count / maxCount) * 100 : 0;
-                  let bgColor = 'bg-gray-300';
-                  let excess = '';
-                  if (day.count > 0 && day.count < 4) {
-                    bgColor = 'bg-green-300';
-                  } else if (day.count === 4) {
-                    bgColor = 'bg-green-600';
-                  } else if (day.count > 4) {
+            <div className="grid grid-cols-7 gap-2 sm:gap-4">
+              {/* Day headers */}
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+                  {day}
+                </div>
+              ))}
+              {/* Calendar days */}
+              {(() => {
+                const today = new Date();
+                const startDate = new Date(today);
+                startDate.setDate(today.getDate() - 29);
+                const startDay = startDate.getDay();
+                const days = [];
+
+                // Add empty cells for days before start
+                for (let i = 0; i < startDay; i++) {
+                  days.push(<div key={`empty-${i}`} className="h-12 sm:h-16"></div>);
+                }
+
+                // Add the 30 days
+                for (let i = 0; i < 30; i++) {
+                  const date = new Date(startDate);
+                  date.setDate(startDate.getDate() + i);
+                  const dateStr = date.toISOString().split('T')[0];
+                  const dayData = stats.daily.find(d => d.date === dateStr) || { count: 0 };
+                  let bgColor = 'bg-gray-100';
+                  let textColor = 'text-gray-400';
+                  let tooltip = '';
+                  if (dayData.count > 0 && dayData.count < 4) {
+                    bgColor = 'bg-green-200';
+                    textColor = 'text-green-800';
+                    tooltip = `${4 - dayData.count} remaining`;
+                  } else if (dayData.count === 4) {
+                    bgColor = 'bg-green-500';
+                    textColor = 'text-white';
+                  } else if (dayData.count > 4) {
                     bgColor = 'bg-blue-500';
-                    excess = ` (exceeded by ${day.count - 4})`;
+                    textColor = 'text-white';
+                    tooltip = `Exceeded by ${dayData.count - 4}`;
                   }
-                  return (
-                    <div key={index} className="flex-1 flex flex-col items-center">
-                      <div
-                        className={`w-full ${bgColor} rounded-t transition-all duration-300 hover:opacity-80`}
-                        style={{ height: `${height}%`, minHeight: day.count > 0 ? '4px' : '0px' }}
-                        title={`${day.date}: ${day.count} clients${excess}`}
-                      ></div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  days.push(
+                    <div
+                      key={dateStr}
+                      className={`h-12 sm:h-16 ${bgColor} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-md`}
+                      title={tooltip}
+                    >
+                      <div className={`text-xs sm:text-sm font-medium ${textColor}`}>
+                        {date.getDate()}
                       </div>
+                      {dayData.count > 0 && (
+                        <div className={`text-xs sm:text-sm font-bold ${textColor}`}>
+                          {dayData.count}
+                        </div>
+                      )}
                     </div>
                   );
-                })}
-              </div>
+                }
+                return days;
+              })()}
             </div>
             <div className="mt-4 text-center text-sm text-gray-500">
-              Hover over bars to see exact counts
+              Hover over days to see details. Goal: 4 clients/day
             </div>
           </div>
 
