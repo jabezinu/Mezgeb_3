@@ -43,9 +43,14 @@ export function AuthProvider({ children }) {
   }
 
   async function updateDailyGoal(newGoal) {
-    const res = await AuthAPI.updateDailyGoal({ dailyGoal: newGoal });
-    setUser(prev => ({ ...prev, dailyGoal: res.dailyGoal }));
-    return res;
+    try {
+      const res = await AuthAPI.updateDailyGoal({ dailyGoal: newGoal });
+      setUser(prev => ({ ...prev, dailyGoal: res.dailyGoal }));
+      return res;
+    } catch (error) {
+      console.error('Failed to update daily goal:', error);
+      throw error;
+    }
   }
 
   function logout() {

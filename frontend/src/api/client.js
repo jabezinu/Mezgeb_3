@@ -30,6 +30,7 @@ export const AuthAPI = {
   login: (payload) => apiRequest('/api/auth/login', { method: 'POST', body: payload }),
   register: (payload) => apiRequest('/api/auth/register', { method: 'POST', body: payload }),
   profile: () => apiRequest('/api/auth/profile'),
+  updateDailyGoal: (payload) => apiRequest('/api/auth/daily-goal', { method: 'PUT', body: payload }),
 };
 
 export const ClientsAPI = {
