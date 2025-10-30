@@ -20,7 +20,7 @@ export default function ClientStats() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const navigate = useNavigate();
-  const { user, updateDailyGoal, addGoalPeriod, updateGoalPeriod, deleteGoalPeriod } = useAuth();
+  const { user, updateDailyGoal, addGoalPeriod, deleteGoalPeriod } = useAuth();
 
   useEffect(() => {
     loadStats();
@@ -97,8 +97,37 @@ export default function ClientStats() {
     if (goal >= 1 && goal <= 50) {
       try {
         if (goalStartDate && goalEndDate) {
-          // Create a new goal period
-          await addGoalPeriod(goal, goalStartDate, goalEndDate);
+          // Check for overlaps before creating
+          const start = new Date(goalStartDate);
+          const end = new Date(goalEndDate);
+          const overlappingPeriod = user?.goalPeriods?.find(period => {
+            if (!period.isActive) return false;
+            const periodStart = new Date(period.startDate);
+            const periodEnd = new Date(period.endDate);
+            return (start <= periodEnd && end >= periodStart);
+          });
+
+          if (overlappingPeriod) {
+            // Show professional conflict resolution dialog
+            const shouldReplace = confirm(
+              `This goal period conflicts with an existing period:\n\n` +
+              `Existing: ${new Date(overlappingPeriod.startDate).toLocaleDateString()} - ${new Date(overlappingPeriod.endDate).toLocaleDateString()} (${overlappingPeriod.goal} clients/day)\n\n` +
+              `New: ${start.toLocaleDateString()} - ${end.toLocaleDateString()} (${goal} clients/day)\n\n` +
+              `Would you like to replace the existing period with this new one?`
+            );
+
+            if (shouldReplace) {
+              // Delete the overlapping period first
+              await deleteGoalPeriod(overlappingPeriod._id);
+              // Then create the new one
+              await addGoalPeriod(goal, goalStartDate, goalEndDate);
+            } else {
+              return; // User cancelled
+            }
+          } else {
+            // No overlap, create normally
+            await addGoalPeriod(goal, goalStartDate, goalEndDate);
+          }
         } else {
           // Update the default daily goal
           await updateDailyGoal(goal);
